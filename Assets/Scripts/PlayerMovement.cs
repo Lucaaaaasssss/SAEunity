@@ -22,6 +22,7 @@ public class PlayerMovement : MonoBehaviour
     private bool boundariesCalculated = false;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
+    private bool controlEnabled = true; // Pour le système de switch de personnages
 
     void Start()
     {
@@ -54,14 +55,35 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleMovement()
     {
+        // Ne pas traiter les inputs si le contrôle est désactivé
+        if (!controlEnabled) return;
+
         // Calculer les limites si pas encore fait et que le Ground a une taille valide
         if (!boundariesCalculated && constrainToBounds)
         {
-            if (groundTransform != null && groundTransform.localScale.magnitude > 3f)
+            if (groundTransform != null)
             {
-                // Le Ground a été initialisé (sa taille n'est plus (1,1,1))
-                CalculateBoundaries();
-                boundariesCalculated = true;
+                bool isGroundReady = false;
+
+                // Vérifier si c'est un TiledGround
+                TiledGround tiledGround = groundTransform.GetComponent<TiledGround>();
+                if (tiledGround != null)
+                {
+                    // Vérifier si les dimensions sont valides
+                    Vector2 dimensions = tiledGround.GetGroundDimensions();
+                    isGroundReady = dimensions.magnitude > 1f;
+                }
+                else
+                {
+                    // Vérifier le localScale pour les autres types de Ground
+                    isGroundReady = groundTransform.localScale.magnitude > 3f;
+                }
+
+                if (isGroundReady)
+                {
+                    CalculateBoundaries();
+                    boundariesCalculated = true;
+                }
             }
         }
 
@@ -110,13 +132,25 @@ public class PlayerMovement : MonoBehaviour
     {
         if (groundTransform != null)
         {
-            // Utiliser les dimensions du Ground
-            Vector3 groundScale = groundTransform.localScale;
             Vector3 groundPos = groundTransform.position;
+            float halfWidth, halfHeight;
 
-            // Le Ground est centré sur sa position, donc on divise la taille par 2
-            float halfWidth = groundScale.x / 2f;
-            float halfHeight = groundScale.y / 2f;
+            // Vérifier si c'est un TiledGround
+            TiledGround tiledGround = groundTransform.GetComponent<TiledGround>();
+            if (tiledGround != null)
+            {
+                // Utiliser les dimensions du TiledGround
+                Vector2 dimensions = tiledGround.GetGroundDimensions();
+                halfWidth = dimensions.x / 2f;
+                halfHeight = dimensions.y / 2f;
+            }
+            else
+            {
+                // Fallback: utiliser le localScale (pour ArcadeGround ou autres)
+                Vector3 groundScale = groundTransform.localScale;
+                halfWidth = groundScale.x / 2f;
+                halfHeight = groundScale.y / 2f;
+            }
 
             minX = groundPos.x - halfWidth + boundaryPadding;
             maxX = groundPos.x + halfWidth - boundaryPadding;
@@ -159,6 +193,12 @@ public class PlayerMovement : MonoBehaviour
         {
             transform.position += Vector3.up * autoScrollSpeed * Time.deltaTime;
         }
+    }
+
+    // Méthode publique pour activer/désactiver le contrôle (utilisée par CharacterSwitcher)
+    public void SetControlEnabled(bool enabled)
+    {
+        controlEnabled = enabled;
     }
 
     void OnDrawGizmos()

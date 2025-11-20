@@ -4,7 +4,6 @@ using UnityEngine;
 public class ArcadeCameraSetup : MonoBehaviour
 {
     [Header("Arcade Screen Settings")]
-    [SerializeField] private float screenWidth = 1920f;
     [SerializeField] private float screenHeight = 1080f;
 
     [Header("Camera Settings")]

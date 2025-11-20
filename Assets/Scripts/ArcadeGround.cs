@@ -3,10 +3,6 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class ArcadeGround : MonoBehaviour
 {
-    [Header("Resolution Settings")]
-    [SerializeField] private float targetWidth = 1920f;
-    [SerializeField] private float targetHeight = 1080f;
-
     [Header("Ground Settings")]
     [SerializeField] private Color groundColor = new Color(0.2f, 0.3f, 0.2f, 1f);
     [SerializeField] private float heightMultiplier = 5f; // Multiplier pour la hauteur du sol

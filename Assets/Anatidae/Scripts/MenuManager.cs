@@ -15,8 +15,21 @@ public class MenuManager : MonoBehaviour
     float heldQuitTimer = 0f;
     const string MenuMessage = "Retour au menu";
 
+    #if UNITY_IOS || UNITY_WEBGL
     [DllImport("__Internal")]
-    public static extern void BackToMenu();
+    private static extern void BackToMenuNative();
+    #endif
+
+    public static void BackToMenu()
+    {
+        #if UNITY_IOS || UNITY_WEBGL
+        BackToMenuNative();
+        #elif UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
+    }
 
     void Update()
     {
@@ -39,10 +52,5 @@ public class MenuManager : MonoBehaviour
             quitText.gameObject.SetActive(true);
             quitText.text = MenuMessage + new string('.', (int)Mathf.Min(Mathf.Max(heldQuitTimer * 3f, afkTimer - AfkTime + 10f * 0.4f), 3));
         } else quitText.gameObject.SetActive(false);
-    }
-
-    public void OnApplicationQuit()
-    {
-        BackToMenu();
     }
 }
