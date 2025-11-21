@@ -23,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     private bool controlEnabled = true; // Pour le système de switch de personnages
+    private bool timerStarted = false; // Pour démarrer le timer au premier mouvement
 
     void Start()
     {
@@ -90,6 +91,17 @@ public class PlayerMovement : MonoBehaviour
         // Récupérer les inputs (arcade ou standard)
         float horizontalInput = useArcadeControls ? Input.GetAxis(horizontalAxis) : Input.GetAxis("Horizontal");
         float verticalInput = useArcadeControls ? Input.GetAxis(verticalAxis) : Input.GetAxis("Vertical");
+
+        // Démarrer le timer au premier mouvement
+        if (!timerStarted && (horizontalInput != 0 || verticalInput != 0))
+        {
+            if (SpeedrunTimer.Instance != null)
+            {
+                SpeedrunTimer.Instance.StartTimer();
+                timerStarted = true;
+                Debug.Log("Speedrun timer started!");
+            }
+        }
 
         // Calculer le mouvement
         // Le jeu se déplace principalement vers le haut
