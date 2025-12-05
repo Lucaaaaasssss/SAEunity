@@ -5,6 +5,9 @@ public class CameraFollowPlayer : MonoBehaviour
     [Header("Follow Settings")]
     [SerializeField] private Transform playerTransform;
     [SerializeField] private bool autoFindPlayer = true;
+    [SerializeField] private bool followActiveCharacter = true; // Suivre le personnage actif du CharacterSwitcher
+
+    private CharacterSwitcher characterSwitcher;
 
     [Header("Follow Constraints")]
     [SerializeField] private bool followX = false; // Ne suit pas horizontalement
@@ -21,8 +24,23 @@ public class CameraFollowPlayer : MonoBehaviour
 
     void Start()
     {
-        // Trouver automatiquement le joueur si nécessaire
-        if (autoFindPlayer && playerTransform == null)
+        // Trouver le CharacterSwitcher si on veut suivre le personnage actif
+        if (followActiveCharacter)
+        {
+            characterSwitcher = FindObjectOfType<CharacterSwitcher>();
+            if (characterSwitcher != null)
+            {
+                Debug.Log("CameraFollowPlayer: CharacterSwitcher trouvé - suivra le personnage actif");
+            }
+            else
+            {
+                Debug.LogWarning("CameraFollowPlayer: CharacterSwitcher non trouvé! Utilise le mode de suivi normal.");
+                followActiveCharacter = false;
+            }
+        }
+
+        // Trouver automatiquement le joueur si nécessaire (et si pas en mode CharacterSwitcher)
+        if (!followActiveCharacter && autoFindPlayer && playerTransform == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player == null)
@@ -51,6 +69,16 @@ public class CameraFollowPlayer : MonoBehaviour
 
     void LateUpdate()
     {
+        // Mettre à jour la cible si on suit le personnage actif
+        if (followActiveCharacter && characterSwitcher != null)
+        {
+            GameObject activeCharacter = characterSwitcher.GetActiveCharacter();
+            if (activeCharacter != null)
+            {
+                playerTransform = activeCharacter.transform;
+            }
+        }
+
         if (playerTransform == null) return;
 
         // Calculer la position cible

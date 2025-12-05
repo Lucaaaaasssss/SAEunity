@@ -13,20 +13,13 @@ public class PolicePatrol : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Detection")]
-    [SerializeField] private Transform detectionZone; // Zone de détection enfant
+    [SerializeField] private GridBasedDetectionZone detectionZone; // Zone de détection enfant
 
     private int currentWaypointIndex = 0;
     private float waitTimer = 0f;
     private bool isWaiting = false;
     private Vector3 lastPosition;
-    private float lastDetectionOffset = 0.7f; // Mémoriser la dernière position de la zone
-    private bool detectionZoneInitialized = false; // Pour s'assurer que la zone est bien initialisée
-
-    void OnEnable()
-    {
-        // Réinitialiser le flag à chaque fois que l'objet est activé (y compris après un reload)
-        detectionZoneInitialized = false;
-    }
+    private GridBasedDetectionZone.DetectionDirection lastDirection = GridBasedDetectionZone.DetectionDirection.Right; // Direction actuelle
 
     void Start()
     {
@@ -44,27 +37,18 @@ public class PolicePatrol : MonoBehaviour
             Debug.LogWarning("PolicePatrol: No waypoints assigned!");
         }
 
-        // Marquer comme non initialisé pour forcer l'initialisation dans Update
-        detectionZoneInitialized = false;
+        // Initialiser la direction de la zone de détection
+        if (detectionZone != null && waypoints.Length > 0)
+        {
+            Vector3 initialDirection = (waypoints[currentWaypointIndex].position - transform.position).normalized;
+            UpdateDetectionDirection(initialDirection);
+        }
     }
 
     void Update()
     {
         if (waypoints == null || waypoints.Length == 0)
             return;
-
-        // S'assurer que la zone de détection est bien initialisée
-        if (!detectionZoneInitialized && detectionZone != null && waypoints.Length > 0)
-        {
-            Vector3 initialDirection = (waypoints[currentWaypointIndex].position - transform.position).normalized;
-            if (initialDirection.magnitude > 0.01f) // S'assurer qu'on a une direction valide
-            {
-                lastDetectionOffset = initialDirection.x < 0 ? -0.7f : 0.7f;
-                detectionZone.localPosition = new Vector3(lastDetectionOffset, 0, 0);
-                detectionZoneInitialized = true;
-                Debug.Log($"DetectionZone initialisée à : {detectionZone.localPosition}");
-            }
-        }
 
         if (isWaiting)
         {
@@ -122,16 +106,7 @@ public class PolicePatrol : MonoBehaviour
             animator.SetBool("isMovingRight", false);
         }
 
-        // Garder la zone de détection dans la dernière direction
-        if (detectionZone != null)
-        {
-            detectionZone.localPosition = new Vector3(lastDetectionOffset, 0, 0);
-            // Debug pour voir si la position est bien maintenue
-            if (Time.frameCount % 30 == 0) // Log toutes les 30 frames pour ne pas spammer
-            {
-                Debug.Log($"HandleWaiting: DetectionZone position = {detectionZone.localPosition}, lastOffset = {lastDetectionOffset}");
-            }
-        }
+        // La zone de détection garde automatiquement sa dernière direction
 
         if (waitTimer >= waitTimeAtWaypoint)
         {
@@ -159,21 +134,6 @@ public class PolicePatrol : MonoBehaviour
             {
                 spriteRenderer.flipX = direction.x < 0;
             }
-
-            // Déplacer la zone de détection devant le policier
-            if (detectionZone != null)
-            {
-                // Si le sprite est flippé (va à gauche), mettre la zone à gauche
-                // Sinon, mettre la zone à droite
-                lastDetectionOffset = direction.x < 0 ? -0.7f : 0.7f;
-                detectionZone.localPosition = new Vector3(lastDetectionOffset, 0, 0);
-
-                // Debug pour voir si la position change pendant le mouvement
-                if (Time.frameCount % 30 == 0)
-                {
-                    Debug.Log($"HandleMovement: DetectionZone position = {detectionZone.localPosition}, direction.x = {direction.x}");
-                }
-            }
         }
         else
         {
@@ -192,6 +152,40 @@ public class PolicePatrol : MonoBehaviour
                 animator.SetBool("isMovingDown", true);
                 animator.SetBool("isMovingUp", false);
             }
+        }
+
+        // Mettre à jour la direction de détection
+        UpdateDetectionDirection(direction);
+    }
+
+    void UpdateDetectionDirection(Vector3 direction)
+    {
+        if (detectionZone == null)
+            return;
+
+        GridBasedDetectionZone.DetectionDirection newDirection;
+
+        // Déterminer la direction principale
+        bool isMovingHorizontal = Mathf.Abs(direction.x) > Mathf.Abs(direction.y);
+
+        if (isMovingHorizontal)
+        {
+            newDirection = direction.x > 0 ?
+                GridBasedDetectionZone.DetectionDirection.Right :
+                GridBasedDetectionZone.DetectionDirection.Left;
+        }
+        else
+        {
+            newDirection = direction.y > 0 ?
+                GridBasedDetectionZone.DetectionDirection.Up :
+                GridBasedDetectionZone.DetectionDirection.Down;
+        }
+
+        // Ne mettre à jour que si la direction a changé
+        if (newDirection != lastDirection)
+        {
+            lastDirection = newDirection;
+            detectionZone.UpdateDetectionShape(newDirection);
         }
     }
 
