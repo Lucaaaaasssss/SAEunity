@@ -3,7 +3,7 @@ using UnityEngine;
 public class GridBasedDetectionZone : MonoBehaviour
 {
     [Header("Grid Settings")]
-    [SerializeField] private float tileSize = 1f; // Taille d'un carreau en unités Unity (32px = 1 unit si PPU=32)
+    [SerializeField] private float tileSize = 0.5f; // Taille d'un carreau en unités Unity (32px = 0.5 unit si PPU=64)
 
     [Header("Detection Pattern")]
     [Tooltip("Nombre de carreaux par rangée (ex: 1, 3, 5 pour un cône)")]

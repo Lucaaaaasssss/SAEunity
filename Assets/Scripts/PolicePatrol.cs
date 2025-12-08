@@ -1,5 +1,9 @@
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class PolicePatrol : MonoBehaviour
 {
     [Header("Patrol Settings")]
@@ -14,6 +18,11 @@ public class PolicePatrol : MonoBehaviour
 
     [Header("Detection")]
     [SerializeField] private GridBasedDetectionZone detectionZone; // Zone de détection enfant
+
+    [Header("Waypoint Creation (Editor Only)")]
+    [SerializeField] private int waypointsToCreate = 4;
+    [SerializeField] private float waypointSpacing = 1.5f;
+    [SerializeField] private bool createInCircle = true;
 
     private int currentWaypointIndex = 0;
     private float waitTimer = 0f;
@@ -98,12 +107,11 @@ public class PolicePatrol : MonoBehaviour
     {
         waitTimer += Time.deltaTime;
 
-        // Arrêter les animations pendant l'attente
+        // Arrêter les animations pendant l'attente (direction = 0)
         if (animator != null)
         {
-            animator.SetBool("isMovingDown", false);
-            animator.SetBool("isMovingUp", false);
-            animator.SetBool("isMovingRight", false);
+            animator.SetFloat("DirectionX", 0);
+            animator.SetFloat("DirectionY", 0);
         }
 
         // La zone de détection garde automatiquement sa dernière direction
@@ -119,39 +127,14 @@ public class PolicePatrol : MonoBehaviour
         if (animator == null)
             return;
 
-        // Déterminer la direction principale
-        bool isMovingHorizontal = Mathf.Abs(direction.x) > Mathf.Abs(direction.y);
+        // Envoyer la direction normalisée au blend tree
+        animator.SetFloat("DirectionX", direction.x);
+        animator.SetFloat("DirectionY", direction.y);
 
-        if (isMovingHorizontal)
+        // Flip le sprite pour les mouvements horizontaux
+        if (spriteRenderer != null && Mathf.Abs(direction.x) > 0.1f)
         {
-            // Mouvement horizontal
-            animator.SetBool("isMovingRight", true);
-            animator.SetBool("isMovingDown", false);
-            animator.SetBool("isMovingUp", false);
-
-            // Flip le sprite selon la direction
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.flipX = direction.x < 0;
-            }
-        }
-        else
-        {
-            // Mouvement vertical
-            animator.SetBool("isMovingRight", false);
-
-            if (direction.y > 0)
-            {
-                // Vers le haut
-                animator.SetBool("isMovingUp", true);
-                animator.SetBool("isMovingDown", false);
-            }
-            else
-            {
-                // Vers le bas
-                animator.SetBool("isMovingDown", true);
-                animator.SetBool("isMovingUp", false);
-            }
+            spriteRenderer.flipX = direction.x < 0;
         }
 
         // Mettre à jour la direction de détection
@@ -213,4 +196,145 @@ public class PolicePatrol : MonoBehaviour
             }
         }
     }
+
+#if UNITY_EDITOR
+    // ===== MÉTHODES D'ÉDITION (EDITOR ONLY) =====
+
+    [ContextMenu("Create Waypoints")]
+    public void CreateWaypoints()
+    {
+        // Trouver ou créer le parent
+        string parentName = $"{gameObject.name}_Waypoints";
+        Transform parent = transform.parent?.Find(parentName);
+
+        if (parent == null)
+        {
+            GameObject parentObj = new GameObject(parentName);
+            if (transform.parent != null)
+                parentObj.transform.SetParent(transform.parent);
+            parentObj.transform.position = transform.position;
+            parent = parentObj.transform;
+            Undo.RegisterCreatedObjectUndo(parentObj, "Create Waypoints Parent");
+        }
+
+        // Créer les waypoints
+        Transform[] newWaypoints = new Transform[waypointsToCreate];
+
+        for (int i = 0; i < waypointsToCreate; i++)
+        {
+            GameObject waypoint = new GameObject($"Waypoint_{i + 1}");
+            waypoint.transform.SetParent(parent);
+
+            // Position
+            if (createInCircle)
+            {
+                float angle = (360f / waypointsToCreate) * i * Mathf.Deg2Rad;
+                waypoint.transform.position = transform.position + new Vector3(
+                    Mathf.Cos(angle) * waypointSpacing,
+                    Mathf.Sin(angle) * waypointSpacing,
+                    0
+                );
+            }
+            else
+            {
+                // En ligne
+                waypoint.transform.position = transform.position + Vector3.right * waypointSpacing * i;
+            }
+
+            // Ajouter WaypointGridSnap
+            waypoint.AddComponent<WaypointGridSnap>();
+            Undo.RegisterCreatedObjectUndo(waypoint, "Create Waypoint");
+
+            newWaypoints[i] = waypoint.transform;
+        }
+
+        // Assigner au PolicePatrol
+        Undo.RecordObject(this, "Assign Waypoints");
+        waypoints = newWaypoints;
+        EditorUtility.SetDirty(this);
+
+        Debug.Log($"✅ {waypointsToCreate} waypoints créés pour {gameObject.name}!");
+        Selection.activeGameObject = parent.gameObject;
+    }
+
+    [ContextMenu("Clear Waypoints")]
+    public void ClearWaypoints()
+    {
+        Undo.RecordObject(this, "Clear Waypoints");
+        waypoints = new Transform[0];
+        EditorUtility.SetDirty(this);
+        Debug.Log($"✅ Waypoints effacés de {gameObject.name}");
+    }
+
+    [ContextMenu("Show Patrol Info")]
+    public void ShowPatrolInfo()
+    {
+        Debug.Log($"=== PATROL INFO: {gameObject.name} ===");
+        Debug.Log($"Nombre de waypoints: {(waypoints != null ? waypoints.Length : 0)}");
+        Debug.Log($"Move Speed: {moveSpeed}");
+        Debug.Log($"Wait Time: {waitTimeAtWaypoint}s");
+
+        if (waypoints != null)
+        {
+            for (int i = 0; i < waypoints.Length; i++)
+            {
+                if (waypoints[i] != null)
+                {
+                    Debug.Log($"  [{i}] {waypoints[i].name} at {waypoints[i].position}");
+                }
+                else
+                {
+                    Debug.LogWarning($"  [{i}] NULL WAYPOINT!");
+                }
+            }
+        }
+    }
+#endif
 }
+
+#if UNITY_EDITOR
+// Éditeur custom pour ajouter des boutons dans l'Inspector
+[CustomEditor(typeof(PolicePatrol))]
+public class PolicePatrolEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        PolicePatrol patrol = (PolicePatrol)target;
+
+        GUILayout.Space(10);
+        EditorGUILayout.LabelField("Actions Rapides", EditorStyles.boldLabel);
+
+        if (GUILayout.Button("🎯 Créer les Waypoints", GUILayout.Height(40)))
+        {
+            patrol.CreateWaypoints();
+        }
+
+        GUILayout.Space(5);
+
+        if (GUILayout.Button("🗑️ Effacer les Waypoints", GUILayout.Height(30)))
+        {
+            if (EditorUtility.DisplayDialog("Confirmer", "Effacer tous les waypoints ?", "Oui", "Non"))
+            {
+                patrol.ClearWaypoints();
+            }
+        }
+
+        GUILayout.Space(5);
+
+        if (GUILayout.Button("ℹ️ Afficher Info", GUILayout.Height(30)))
+        {
+            patrol.ShowPatrolInfo();
+        }
+
+        GUILayout.Space(10);
+        EditorGUILayout.HelpBox(
+            "1. Configure 'Waypoints To Create' et 'Waypoint Spacing'\n" +
+            "2. Clique '🎯 Créer les Waypoints'\n" +
+            "3. Déplace-les dans la Scene (snap auto à la grille)\n" +
+            "4. Le policier patrouille en boucle infinie ! 🔄",
+            MessageType.Info);
+    }
+}
+#endif

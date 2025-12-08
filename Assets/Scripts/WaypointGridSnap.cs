@@ -11,8 +11,8 @@ using UnityEditor;
 public class WaypointGridSnap : MonoBehaviour
 {
     [Header("Grid Settings")]
-    [Tooltip("Taille d'un carreau en unités Unity (32px = 1 si PPU=32)")]
-    [SerializeField] private float gridSize = 1f;
+    [Tooltip("Taille d'un carreau en unités Unity (32px = 0.5 si PPU=64)")]
+    [SerializeField] private float gridSize = 0.5f;
 
     [Header("Snap Settings")]
     [Tooltip("Snap automatiquement en temps réel dans l'éditeur")]
