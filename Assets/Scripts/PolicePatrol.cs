@@ -131,10 +131,20 @@ public class PolicePatrol : MonoBehaviour
         animator.SetFloat("DirectionX", direction.x);
         animator.SetFloat("DirectionY", direction.y);
 
-        // Flip le sprite pour les mouvements horizontaux
-        if (spriteRenderer != null && Mathf.Abs(direction.x) > 0.1f)
+        // Flip le sprite UNIQUEMENT pour les mouvements principalement horizontaux
+        if (spriteRenderer != null)
         {
-            spriteRenderer.flipX = direction.x < 0;
+            bool isMovingHorizontal = Mathf.Abs(direction.x) > Mathf.Abs(direction.y);
+            if (isMovingHorizontal)
+            {
+                // Flipper uniquement si le mouvement est principalement horizontal
+                spriteRenderer.flipX = direction.x < 0;
+            }
+            else
+            {
+                // Ne pas flipper pendant les mouvements verticaux (front/back)
+                spriteRenderer.flipX = false;
+            }
         }
 
         // Mettre à jour la direction de détection

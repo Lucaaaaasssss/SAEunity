@@ -125,11 +125,19 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("isMovingUp", isMovingUp);
             animator.SetBool("isMovingRight", isMovingHorizontal);
 
-            // Gérer le flip du sprite pour gauche/droite
-            if (spriteRenderer != null && horizontalInput != 0)
+            // Gérer le flip du sprite UNIQUEMENT pour l'animation de côté
+            if (spriteRenderer != null)
             {
-                // Si on va à gauche, flipper le sprite
-                spriteRenderer.flipX = horizontalInput < 0;
+                if (isMovingHorizontal)
+                {
+                    // Flipper uniquement pendant l'animation horizontale
+                    spriteRenderer.flipX = horizontalInput < 0;
+                }
+                else
+                {
+                    // Ne pas flipper pendant les animations front/back
+                    spriteRenderer.flipX = false;
+                }
             }
         }
 
