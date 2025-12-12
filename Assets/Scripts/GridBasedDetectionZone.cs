@@ -13,8 +13,17 @@ public class GridBasedDetectionZone : MonoBehaviour
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private string playerTag = "Player";
 
+    [Header("Line of Sight")]
+    [SerializeField] private bool requireLineOfSight = true;
+    [SerializeField] private LayerMask wallLayer; // Layer des murs qui bloquent la vue
+    [Tooltip("Si vide, détecte tout objet avec le tag 'Wall'")]
+    [SerializeField] private string wallTag = "Wall";
+    [SerializeField] private bool clipVisionToWalls = true; // Découpe la vision aux murs
+    [SerializeField] private int raycastResolution = 10; // Nombre de raycasts pour détecter les murs
+
     [Header("Visual Feedback")]
     [SerializeField] private bool showDebugZone = true;
+    [SerializeField] private bool showLineOfSight = true;
     [SerializeField] private Color detectionColor = new Color(1f, 0f, 0f, 0.3f);
     [SerializeField] private Color normalColor = new Color(1f, 1f, 0f, 0.3f);
 
@@ -25,6 +34,10 @@ public class GridBasedDetectionZone : MonoBehaviour
     // Visualisation runtime
     private MeshRenderer meshRenderer;
     private MeshFilter meshFilter;
+
+    // Line of Sight tracking
+    private GameObject lastDetectedPlayer;
+    private bool hasLineOfSight = false;
 
     // Directions possibles (Up, Down, Left, Right)
     public enum DetectionDirection
@@ -204,31 +217,226 @@ public class GridBasedDetectionZone : MonoBehaviour
         {
             meshRenderer.material.color = playerDetected ? detectionColor : normalColor;
         }
+
+        // Mettre à jour le mesh pour découper selon les murs
+        if (clipVisionToWalls && Application.isPlaying)
+        {
+            Vector2[] clippedPoints = CalculateFieldOfView();
+            UpdateVisualization(clippedPoints);
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag(playerTag))
+        // Ne détecter QUE les triggers (ignore les colliders normaux du joueur)
+        if (other.CompareTag(playerTag) && other.isTrigger)
         {
-            playerDetected = true;
-            OnPlayerDetected(other.gameObject);
+            // Remonter au parent si c'est un trigger enfant (DetectionTrigger)
+            GameObject targetPlayer = other.transform.parent != null ?
+                other.transform.parent.gameObject : other.gameObject;
+
+            lastDetectedPlayer = targetPlayer;
+            CheckDetection();
         }
     }
 
     void OnTriggerStay2D(Collider2D other)
     {
-        if (other.CompareTag(playerTag))
+        // Ne détecter QUE les triggers (ignore les colliders normaux du joueur)
+        if (other.CompareTag(playerTag) && other.isTrigger)
         {
-            playerDetected = true;
+            // Remonter au parent si c'est un trigger enfant (DetectionTrigger)
+            GameObject targetPlayer = other.transform.parent != null ?
+                other.transform.parent.gameObject : other.gameObject;
+
+            lastDetectedPlayer = targetPlayer;
+            CheckDetection();
         }
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag(playerTag))
+        // Ne détecter QUE les triggers (ignore les colliders normaux du joueur)
+        if (other.CompareTag(playerTag) && other.isTrigger)
         {
-            playerDetected = false;
+            // Remonter au parent si c'est un trigger enfant (DetectionTrigger)
+            GameObject targetPlayer = other.transform.parent != null ?
+                other.transform.parent.gameObject : other.gameObject;
+
+            if (targetPlayer == lastDetectedPlayer)
+            {
+                playerDetected = false;
+                hasLineOfSight = false;
+                lastDetectedPlayer = null;
+            }
         }
+    }
+
+    /// <summary>
+    /// Vérifie si le joueur est détectable (avec ligne de vue si activée)
+    /// </summary>
+    void CheckDetection()
+    {
+        if (lastDetectedPlayer == null)
+            return;
+
+        // Vérifier la ligne de vue si activée
+        if (requireLineOfSight)
+        {
+            hasLineOfSight = HasLineOfSight(lastDetectedPlayer);
+
+            if (hasLineOfSight && !playerDetected)
+            {
+                // Joueur détecté pour la première fois avec ligne de vue
+                playerDetected = true;
+                OnPlayerDetected(lastDetectedPlayer);
+            }
+            else if (!hasLineOfSight)
+            {
+                // Pas de ligne de vue = pas de détection
+                playerDetected = false;
+            }
+        }
+        else
+        {
+            // Sans ligne de vue, détection immédiate
+            if (!playerDetected)
+            {
+                playerDetected = true;
+                OnPlayerDetected(lastDetectedPlayer);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calcule le champ de vision en tenant compte des murs
+    /// </summary>
+    Vector2[] CalculateFieldOfView()
+    {
+        if (!clipVisionToWalls)
+        {
+            // Retourner le cône normal sans découpe
+            return GenerateConePoints(currentDetectionDirection);
+        }
+
+        // Obtenir le trapèze original
+        Vector2[] originalCone = GenerateConePoints(currentDetectionDirection);
+
+        // Pour chaque point du trapèze, vérifier s'il y a un mur
+        Vector2[] clippedCone = new Vector2[originalCone.Length];
+        Vector2 worldPos = transform.position;
+
+        for (int i = 0; i < originalCone.Length; i++)
+        {
+            Vector2 localPoint = originalCone[i];
+            Vector2 worldPoint = worldPos + localPoint;
+
+            // Direction du policier vers ce point
+            Vector2 direction = localPoint.normalized;
+            float distance = localPoint.magnitude;
+
+            // Raycast pour voir s'il y a un mur
+            RaycastHit2D hit = RaycastForWall(worldPos, direction, distance);
+
+            if (hit.collider != null)
+            {
+                // Mur trouvé, raccourcir le point jusqu'au mur
+                clippedCone[i] = hit.point - worldPos;
+            }
+            else
+            {
+                // Pas de mur, garder le point original
+                clippedCone[i] = localPoint;
+            }
+        }
+
+        return clippedCone;
+    }
+
+    /// <summary>
+    /// Fait un raycast qui détecte uniquement les murs
+    /// </summary>
+    RaycastHit2D RaycastForWall(Vector2 origin, Vector2 direction, float distance)
+    {
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, distance);
+
+        foreach (RaycastHit2D hit in hits)
+        {
+            // Ignorer le trigger de détection lui-même
+            if (hit.collider.gameObject == gameObject)
+                continue;
+
+            // Ignorer les joueurs
+            if (hit.collider.CompareTag(playerTag))
+                continue;
+
+            // Vérifier si c'est un mur (par layer ou tag)
+            if (wallLayer.value != 0)
+            {
+                int hitLayer = 1 << hit.collider.gameObject.layer;
+                if ((wallLayer.value & hitLayer) != 0)
+                {
+                    return hit; // Mur trouvé
+                }
+            }
+
+            if (!string.IsNullOrEmpty(wallTag) && hit.collider.CompareTag(wallTag))
+            {
+                return hit; // Mur trouvé
+            }
+        }
+
+        return default(RaycastHit2D); // Pas de mur
+    }
+
+    /// <summary>
+    /// Vérifie s'il y a une ligne de vue dégagée jusqu'au joueur (pas de mur entre)
+    /// </summary>
+    bool HasLineOfSight(GameObject player)
+    {
+        if (player == null)
+            return false;
+
+        // Position du policier (parent de la zone de détection)
+        Vector2 policePos = transform.position;
+        Vector2 playerPos = player.transform.position;
+
+        // Direction et distance
+        Vector2 direction = (playerPos - policePos).normalized;
+        float distance = Vector2.Distance(policePos, playerPos);
+
+        // Faire un raycast qui détecte tout
+        RaycastHit2D[] hits = Physics2D.RaycastAll(policePos, direction, distance);
+
+        // Vérifier chaque objet touché
+        foreach (RaycastHit2D hit in hits)
+        {
+            // Ignorer le trigger de détection lui-même et le joueur
+            if (hit.collider.gameObject == gameObject || hit.collider.gameObject == player)
+                continue;
+
+            // Si on a configuré un layer spécifique, vérifier d'abord ça
+            if (wallLayer.value != 0)
+            {
+                int hitLayer = 1 << hit.collider.gameObject.layer;
+                if ((wallLayer.value & hitLayer) != 0)
+                {
+                    Debug.Log($"🚫 Mur détecté par layer: {hit.collider.name}");
+                    return false; // Un mur bloque la vue
+                }
+            }
+
+            // Vérifier le tag "Wall"
+            if (!string.IsNullOrEmpty(wallTag) && hit.collider.CompareTag(wallTag))
+            {
+                Debug.Log($"🚫 Mur détecté par tag: {hit.collider.name}");
+                return false; // Un mur bloque la vue
+            }
+        }
+
+        // Pas d'obstacle, ligne de vue dégagée
+        Debug.Log($"✅ Ligne de vue dégagée vers {player.name}");
+        return true;
     }
 
     void OnPlayerDetected(GameObject player)
@@ -289,6 +497,33 @@ public class GridBasedDetectionZone : MonoBehaviour
 
         // Dessiner aussi la grille des carreaux pour visualiser
         DrawTileGrid();
+
+        // Dessiner la ligne de vue en mode jeu
+        if (showLineOfSight && Application.isPlaying && lastDetectedPlayer != null)
+        {
+            Gizmos.matrix = Matrix4x4.identity;
+            Vector3 policePos = transform.position;
+            Vector3 playerPos = lastDetectedPlayer.transform.position;
+
+            // Couleur selon si la ligne de vue est bloquée ou non
+            Gizmos.color = hasLineOfSight ? Color.red : Color.green;
+            Gizmos.DrawLine(policePos, playerPos);
+
+            // Dessiner une sphère au point d'impact
+            if (!hasLineOfSight)
+            {
+                // Trouver où le raycast a été bloqué
+                Vector2 direction = (playerPos - policePos).normalized;
+                float distance = Vector2.Distance(policePos, playerPos);
+                RaycastHit2D hit = Physics2D.Raycast(policePos, direction, distance, wallLayer);
+
+                if (hit.collider != null)
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawWireSphere(hit.point, 0.2f);
+                }
+            }
+        }
     }
 
     void DrawTileGrid()

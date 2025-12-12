@@ -75,6 +75,7 @@ public class WallBuilder : MonoBehaviour
 
         // Créer le GameObject mur
         GameObject wall = new GameObject($"Wall_{sprite.name}");
+        wall.tag = "Wall"; // Tag pour la détection par les policiers
 
         // Parent
         Transform parent = GameObject.Find("Walls")?.transform;
