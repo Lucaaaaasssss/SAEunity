@@ -16,6 +16,9 @@ public class WallBuilder : MonoBehaviour
     [SerializeField] private int sortingOrder = 10; // Au-dessus du sol
     [SerializeField] private bool addColliders = true;
 
+    [Header("Collider Settings")]
+    [SerializeField] private Vector2 colliderSizeMultiplier = new Vector2(1.1f, 1.0f); // Largeur +10% pour gauche/droite
+
     [Header("Placement Rapide")]
     [SerializeField] private int selectedWallIndex = 0; // 0-15
     [SerializeField] private bool snapToGrid = true;
@@ -89,10 +92,21 @@ public class WallBuilder : MonoBehaviour
         sr.sprite = sprite;
         sr.sortingOrder = sortingOrder;
 
-        // Collider
+        // Collider avec taille ajustée
         if (addColliders)
         {
-            wall.AddComponent<BoxCollider2D>();
+            BoxCollider2D collider = wall.AddComponent<BoxCollider2D>();
+
+            // Calculer la taille du sprite
+            Vector2 spriteSize = sprite.bounds.size;
+
+            // Appliquer le multiplicateur pour agrandir sur les côtés
+            collider.size = new Vector2(
+                spriteSize.x * colliderSizeMultiplier.x,
+                spriteSize.y * colliderSizeMultiplier.y
+            );
+
+            Debug.Log($"🔲 Collider: {collider.size} (sprite: {spriteSize})");
         }
 
         Undo.RegisterCreatedObjectUndo(wall, "Place Wall");
