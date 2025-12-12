@@ -155,29 +155,8 @@ public class WallBuilder : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // Afficher le mur sélectionné à la position de la souris
-        if (wallSprites != null && selectedWallIndex < wallSprites.Length && wallSprites[selectedWallIndex] != null)
-        {
-            Gizmos.color = Color.yellow;
-            Vector3 mousePos = GetMouseWorldPosition();
-            if (snapToGrid)
-            {
-                mousePos = SnapToGrid(mousePos);
-            }
-            Gizmos.DrawWireCube(mousePos, Vector3.one * gridSize);
-        }
-    }
-
-    private Vector3 GetMouseWorldPosition()
-    {
-        if (SceneView.lastActiveSceneView != null && SceneView.lastActiveSceneView.camera != null)
-        {
-            Vector3 mousePos = Event.current != null ? Event.current.mousePosition : Vector2.zero;
-            mousePos.y = SceneView.lastActiveSceneView.camera.pixelHeight - mousePos.y;
-            Ray ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(mousePos);
-            return ray.origin;
-        }
-        return Vector3.zero;
+        // Note: La prévisualisation est maintenant gérée dans OnSceneGUI du custom editor
+        // pour éviter les problèmes de décalage
     }
 #endif
 }
@@ -317,57 +296,93 @@ public class WallBuilderEditor : Editor
     private void OnSceneGUI()
     {
         WallBuilder builder = (WallBuilder)target;
-
         Event e = Event.current;
 
-        // Snap le WallBuilder lui-même à la grille (comme les points de patrouille)
+        // Récupérer les propriétés
         SerializedProperty snapToGrid = serializedObject.FindProperty("snapToGrid");
-        if (snapToGrid != null && snapToGrid.boolValue)
-        {
-            Vector3 currentPos = builder.transform.position;
+        SerializedProperty gridSize = serializedObject.FindProperty("gridSize");
+        SerializedProperty wallSprites = serializedObject.FindProperty("wallSprites");
+        SerializedProperty selectedIndex = serializedObject.FindProperty("selectedWallIndex");
 
-            // Utiliser la méthode SnapToGrid via réflexion
+        // Obtenir la position de la souris dans le monde (corrigée pour 2D)
+        Vector3 mouseWorldPos = GetMouseWorldPos();
+
+        // Appliquer le snap si nécessaire
+        if (snapToGrid.boolValue)
+        {
             System.Reflection.MethodInfo snapMethod = builder.GetType().GetMethod("SnapToGrid",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
             if (snapMethod != null)
             {
-                Vector3 snappedPos = (Vector3)snapMethod.Invoke(builder, new object[] { currentPos });
-
-                if (currentPos != snappedPos)
-                {
-                    Undo.RecordObject(builder.transform, "Snap WallBuilder to Grid");
-                    builder.transform.position = snappedPos;
-                }
+                mouseWorldPos = (Vector3)snapMethod.Invoke(builder, new object[] { mouseWorldPos });
             }
         }
 
-        // Appuyer sur P pour placer
+        // ===== GESTION DES CLICS =====
+        // Clic gauche pour placer un mur
+        if (e.type == EventType.MouseDown && e.button == 0 && !e.alt)
+        {
+            builder.PlaceWall(mouseWorldPos);
+            e.Use(); // Empêche la désélection du WallBuilder
+        }
+
+        // Touche P pour placer (raccourci alternatif)
         if (e.type == EventType.KeyDown && e.keyCode == KeyCode.P)
         {
-            Vector3 mousePos = GetMouseWorldPos();
-            builder.PlaceWall(mousePos);
+            builder.PlaceWall(mouseWorldPos);
             e.Use();
         }
 
-        // Afficher où le mur sera placé
-        Handles.color = Color.yellow;
-        Vector3 pos = GetMouseWorldPos();
-        if (builder.GetType().GetField("snapToGrid", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(builder) is bool snap && snap)
+        // ===== PRÉVISUALISATION =====
+        if (selectedIndex.intValue < wallSprites.arraySize)
         {
-            float grid = (float)builder.GetType().GetField("gridSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(builder);
-            pos.x = Mathf.Round(pos.x / grid) * grid;
-            pos.y = Mathf.Round(pos.y / grid) * grid;
-        }
-        Handles.DrawWireCube(pos, Vector3.one * 0.5f);
+            // Carré jaune de prévisualisation
+            Handles.color = new Color(1f, 1f, 0f, 0.8f); // Jaune vif
+            Handles.DrawWireCube(mouseWorldPos, Vector3.one * gridSize.floatValue);
 
-        SceneView.RepaintAll();
+            // Remplissage semi-transparent
+            Handles.color = new Color(1f, 1f, 0f, 0.2f);
+            Handles.DrawSolidDisc(mouseWorldPos, Vector3.forward, gridSize.floatValue * 0.4f);
+
+            // Croix au centre pour marquer le point précis
+            Handles.color = Color.yellow;
+            float crossSize = gridSize.floatValue * 0.3f;
+            Handles.DrawLine(mouseWorldPos + Vector3.left * crossSize, mouseWorldPos + Vector3.right * crossSize);
+            Handles.DrawLine(mouseWorldPos + Vector3.down * crossSize, mouseWorldPos + Vector3.up * crossSize);
+
+            // Label avec le numéro du mur sélectionné
+            Handles.color = Color.white;
+            GUIStyle style = new GUIStyle();
+            style.normal.textColor = Color.yellow;
+            style.fontSize = 12;
+            style.fontStyle = FontStyle.Bold;
+            Handles.Label(mouseWorldPos + Vector3.up * (gridSize.floatValue * 0.6f),
+                         $"Mur {selectedIndex.intValue + 1}", style);
+        }
+
+        // Forcer le repaint pour que la prévisualisation suive la souris
+        if (e.type == EventType.MouseMove)
+        {
+            SceneView.RepaintAll();
+        }
+
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
     }
 
     private Vector3 GetMouseWorldPos()
     {
+        // Obtenir la position 2D de la souris dans le monde
         Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-        return ray.origin;
+        Plane plane = new Plane(Vector3.forward, Vector3.zero);
+
+        if (plane.Raycast(ray, out float distance))
+        {
+            Vector3 worldPos = ray.GetPoint(distance);
+            worldPos.z = 0; // Forcer Z à 0 pour 2D
+            return worldPos;
+        }
+
+        return Vector3.zero;
     }
 }
 #endif
