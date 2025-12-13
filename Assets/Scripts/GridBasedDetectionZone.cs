@@ -19,7 +19,7 @@ public class GridBasedDetectionZone : MonoBehaviour
     [Tooltip("Si vide, détecte tout objet avec le tag 'Wall'")]
     [SerializeField] private string wallTag = "Wall";
     [SerializeField] private bool clipVisionToWalls = true; // Découpe la vision aux murs
-    [SerializeField] private int raycastResolution = 10; // Nombre de raycasts pour détecter les murs
+    [SerializeField] private int raycastResolution = 20; // Nombre de raycasts radiaux (plus = plus précis)
 
     [Header("Visual Feedback")]
     [SerializeField] private bool showDebugZone = true;
@@ -93,7 +93,8 @@ public class GridBasedDetectionZone : MonoBehaviour
         Material mat = new Material(shader);
         mat.color = normalColor;
         meshRenderer.material = mat;
-        meshRenderer.sortingOrder = -1; // Derrière les personnages
+        meshRenderer.sortingLayerName = "Default";
+        meshRenderer.sortingOrder = -10; // Derrière tout (murs, personnages, etc.)
     }
 
     /// <summary>
@@ -218,11 +219,18 @@ public class GridBasedDetectionZone : MonoBehaviour
             meshRenderer.material.color = playerDetected ? detectionColor : normalColor;
         }
 
-        // Mettre à jour le mesh pour découper selon les murs
+        // Mettre à jour la visualisation ET le collider pour découper selon les murs
         if (clipVisionToWalls && Application.isPlaying)
         {
             Vector2[] clippedPoints = CalculateFieldOfView();
             UpdateVisualization(clippedPoints);
+
+            // Synchroniser le PolygonCollider2D avec la forme visuelle
+            // Zone de détection = exactement ce que vous voyez
+            if (polygonCollider != null)
+            {
+                polygonCollider.points = clippedPoints;
+            }
         }
     }
 
@@ -309,7 +317,7 @@ public class GridBasedDetectionZone : MonoBehaviour
     }
 
     /// <summary>
-    /// Calcule le champ de vision en tenant compte des murs
+    /// Calcule le champ de vision en tenant compte des murs avec raycasts radiaux
     /// </summary>
     Vector2[] CalculateFieldOfView()
     {
@@ -319,38 +327,62 @@ public class GridBasedDetectionZone : MonoBehaviour
             return GenerateConePoints(currentDetectionDirection);
         }
 
-        // Obtenir le trapèze original
-        Vector2[] originalCone = GenerateConePoints(currentDetectionDirection);
+        // Déterminer les angles de début et fin selon la direction
+        float startAngle = 0f;
+        float endAngle = 0f;
+        float maxDistance = tilesPerRow.Length * tileSize;
 
-        // Pour chaque point du trapèze, vérifier s'il y a un mur
-        Vector2[] clippedCone = new Vector2[originalCone.Length];
+        switch (currentDetectionDirection)
+        {
+            case DetectionDirection.Up:
+                startAngle = 45f;
+                endAngle = 135f;
+                break;
+            case DetectionDirection.Down:
+                startAngle = 225f;
+                endAngle = 315f;
+                break;
+            case DetectionDirection.Right:
+                startAngle = -45f;
+                endAngle = 45f;
+                break;
+            case DetectionDirection.Left:
+                startAngle = 135f;
+                endAngle = 225f;
+                break;
+        }
+
+        // Créer des points avec raycasts radiaux
+        System.Collections.Generic.List<Vector2> viewPoints = new System.Collections.Generic.List<Vector2>();
         Vector2 worldPos = transform.position;
 
-        for (int i = 0; i < originalCone.Length; i++)
+        // Point de départ (position du policier)
+        viewPoints.Add(Vector2.zero);
+
+        // Faire des raycasts radiaux dans toutes les directions du cône
+        for (int i = 0; i <= raycastResolution; i++)
         {
-            Vector2 localPoint = originalCone[i];
-            Vector2 worldPoint = worldPos + localPoint;
+            float t = i / (float)raycastResolution;
+            float angle = Mathf.Lerp(startAngle, endAngle, t);
+            Vector2 direction = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
 
-            // Direction du policier vers ce point
-            Vector2 direction = localPoint.normalized;
-            float distance = localPoint.magnitude;
-
-            // Raycast pour voir s'il y a un mur
-            RaycastHit2D hit = RaycastForWall(worldPos, direction, distance);
+            // Raycast dans cette direction
+            RaycastHit2D hit = RaycastForWall(worldPos, direction, maxDistance);
 
             if (hit.collider != null)
             {
-                // Mur trouvé, raccourcir le point jusqu'au mur
-                clippedCone[i] = hit.point - worldPos;
+                // Touché un mur, arrêter le point ici (en local space)
+                Vector2 hitPointLocal = hit.point - worldPos;
+                viewPoints.Add(hitPointLocal);
             }
             else
             {
-                // Pas de mur, garder le point original
-                clippedCone[i] = localPoint;
+                // Pas de mur, aller jusqu'à la distance max
+                viewPoints.Add(direction * maxDistance);
             }
         }
 
-        return clippedCone;
+        return viewPoints.ToArray();
     }
 
     /// <summary>

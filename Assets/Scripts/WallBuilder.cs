@@ -91,7 +91,8 @@ public class WallBuilder : MonoBehaviour
         // SpriteRenderer
         SpriteRenderer sr = wall.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
-        sr.sortingOrder = sortingOrder;
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = 0; // Au-dessus de la lumière (-10) mais sous les personnages
 
         // Collider avec taille ajustée
         if (addColliders)
