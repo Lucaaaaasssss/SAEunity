@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections;
+using Anatidae;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,11 +11,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI gameOverText; // Texte du game over
     [SerializeField] private bool pauseGameOnGameOver = true;
 
+    [Header("Victory Settings")]
+    [SerializeField] private GameObject victoryPanel; // Panel UI pour la victoire
+    [SerializeField] private TextMeshProUGUI victoryTimeText; // Affichage du temps final
+
     [Header("Game Over Actions")]
     [SerializeField] private KeyCode restartKey = KeyCode.R;
     [SerializeField] private KeyCode quitKey = KeyCode.Escape;
 
     private bool gameIsOver = false;
+    private bool hasWon = false;
 
     public static GameManager Instance { get; private set; }
 
@@ -33,10 +40,15 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // Cacher le panel de game over au départ
+        // Cacher les panels au départ
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
+        }
+
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(false);
         }
     }
 
@@ -115,5 +127,88 @@ public class GameManager : MonoBehaviour
     public bool IsGameOver()
     {
         return gameIsOver;
+    }
+
+    public bool HasWon()
+    {
+        return hasWon;
+    }
+
+    /// <summary>
+    /// Déclenche la victoire et envoie le score à l'API
+    /// </summary>
+    public void TriggerVictory()
+    {
+        if (gameIsOver)
+            return; // Éviter de déclencher plusieurs fois
+
+        gameIsOver = true;
+        hasWon = true;
+
+        Debug.Log("🎉 VICTOIRE!");
+
+        // Arrêter le timer et récupérer le temps final
+        float finalTime = 0f;
+        if (SpeedrunTimer.Instance != null)
+        {
+            SpeedrunTimer.Instance.PauseTimer();
+            finalTime = SpeedrunTimer.Instance.ElapsedTime;
+            Debug.Log($"Temps final: {SpeedrunTimer.FormatTime(finalTime)}");
+        }
+
+        // Afficher le panel de victoire
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(true);
+
+            // Afficher le temps
+            if (victoryTimeText != null)
+            {
+                victoryTimeText.text = $"Temps: {SpeedrunTimer.FormatTime(finalTime)}";
+            }
+        }
+
+        // Convertir le temps en centisecondes pour l'API
+        int timeInCentiseconds = Mathf.RoundToInt(finalTime * 100f);
+
+        // Envoyer le score à l'API
+        StartCoroutine(ProcessHighscore(timeInCentiseconds));
+    }
+
+    /// <summary>
+    /// Vérifie si c'est un highscore et affiche l'écran de saisie du nom si nécessaire
+    /// </summary>
+    IEnumerator ProcessHighscore(int time)
+    {
+        Debug.Log($"🔄 Vérification du highscore pour {time} centisecondes...");
+
+        // Récupérer les highscores depuis l'API
+        yield return HighscoreManager.FetchHighscores();
+
+        if (HighscoreManager.HasFetchedHighscores)
+        {
+            // Vérifier si c'est un highscore
+            if (HighscoreManager.IsHighscore(time))
+            {
+                Debug.Log("🏆 NOUVEAU HIGHSCORE!");
+
+                // Cacher le panel de victoire
+                if (victoryPanel != null)
+                {
+                    victoryPanel.SetActive(false);
+                }
+
+                // Afficher l'écran de saisie du nom
+                HighscoreManager.ShowHighscoreInput(time);
+            }
+            else
+            {
+                Debug.Log("Pas un highscore cette fois, mais bien joué!");
+            }
+        }
+        else
+        {
+            Debug.LogError("❌ Impossible de récupérer les highscores depuis l'API. Vérifiez que le backend est démarré!");
+        }
     }
 }
