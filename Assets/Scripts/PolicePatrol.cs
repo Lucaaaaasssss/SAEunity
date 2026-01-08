@@ -122,6 +122,13 @@ public class PolicePatrol : MonoBehaviour
         }
     }
 
+    // Méthode publique pour modifier la vitesse depuis l'extérieur
+    public void SetMoveSpeed(float newSpeed)
+    {
+        moveSpeed = Mathf.Clamp(newSpeed, 0.1f, 20f);
+        Debug.Log($"PolicePatrol {gameObject.name}: Speed set to {moveSpeed}");
+    }
+
     void UpdateAnimation(Vector3 direction)
     {
         if (animator == null)

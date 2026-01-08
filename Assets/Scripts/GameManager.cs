@@ -50,6 +50,14 @@ public class GameManager : MonoBehaviour
         {
             victoryPanel.SetActive(false);
         }
+
+        // Charger et appliquer les paramètres du jeu
+        StartCoroutine(InitializeGameSettings());
+    }
+
+    IEnumerator InitializeGameSettings()
+    {
+        yield return PoliceSpeedManager.FetchAndApplyPoliceSpeed();
     }
 
     void Update()
