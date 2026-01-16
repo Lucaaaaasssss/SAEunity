@@ -22,6 +22,7 @@ public class PlayerMovement : MonoBehaviour
     private bool boundariesCalculated = false;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
+    private Rigidbody2D rb;
     private bool controlEnabled = true; // Pour le système de switch de personnages
     private bool timerStarted = false; // Pour démarrer le timer au premier mouvement
 
@@ -30,6 +31,15 @@ public class PlayerMovement : MonoBehaviour
         mainCamera = Camera.main;
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>();
+
+        // Configurer le Rigidbody2D si présent
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody2D>();
+        }
+        rb.gravityScale = 0f; // Pas de gravité en 2D top-down
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation; // Empêcher la rotation
 
         // Trouver automatiquement le Ground si nécessaire
         if (autoFindGround && groundTransform == null)
@@ -51,10 +61,19 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        HandleMovement();
+        // Gérer les inputs dans Update
+        HandleInput();
     }
 
-    void HandleMovement()
+    void FixedUpdate()
+    {
+        // Appliquer le mouvement dans FixedUpdate pour des collisions fluides
+        ApplyMovement();
+    }
+
+    private Vector2 moveDirection;
+
+    void HandleInput()
     {
         // Ne pas traiter les inputs si le contrôle est désactivé
         if (!controlEnabled) return;
@@ -103,16 +122,11 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Calculer le mouvement
-        // Le jeu se déplace principalement vers le haut
-        Vector3 movement = new Vector3(
+        // Stocker la direction de mouvement
+        moveDirection = new Vector2(
             horizontalInput * horizontalSpeed,
-            verticalInput * moveSpeed,
-            0
+            verticalInput * moveSpeed
         );
-
-        // Appliquer le mouvement
-        transform.position += movement * Time.deltaTime;
 
         // Contrôler l'animation selon la direction
         if (animator != null)
@@ -141,11 +155,24 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Contraindre aux limites de l'écran si activé
+    }
+
+    void ApplyMovement()
+    {
+        if (rb == null) return;
+
+        // Calculer la nouvelle position
+        Vector2 newPosition = rb.position + moveDirection * Time.fixedDeltaTime;
+
+        // Contraindre aux limites si activé
         if (constrainToBounds && boundariesCalculated)
         {
-            ClampPositionToBounds();
+            newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+            newPosition.y = Mathf.Clamp(newPosition.y, minY, maxY);
         }
+
+        // Appliquer le mouvement avec Rigidbody2D (fluide avec les collisions)
+        rb.MovePosition(newPosition);
     }
 
     void CalculateBoundaries()
@@ -192,14 +219,6 @@ public class PlayerMovement : MonoBehaviour
 
             Debug.Log("Boundaries set from camera view (Ground not found)");
         }
-    }
-
-    void ClampPositionToBounds()
-    {
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, minX, maxX);
-        pos.y = Mathf.Clamp(pos.y, minY, maxY);
-        transform.position = pos;
     }
 
     // Optionnel: pour un scrolling automatique vers le haut

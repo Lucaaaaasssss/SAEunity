@@ -6,12 +6,22 @@ using System.Collections.Generic;
 /// </summary>
 public class PressurePlate : MonoBehaviour
 {
+    public enum PlateAction
+    {
+        OpenDoors,          // Ouvre des portes
+        DisableCameras      // Désactive des caméras
+    }
+
     [Header("Plaque Sprites")]
     [SerializeField] private Sprite plateUp;   // plaque_lev (levée)
     [SerializeField] private Sprite plateDown; // plaque_ap (appuyée)
 
-    [Header("Connected Doors")]
+    [Header("Plate Action Type")]
+    [SerializeField] private PlateAction actionType = PlateAction.OpenDoors;
+
+    [Header("Connected Objects")]
     [SerializeField] private Door[] connectedDoors; // Portes à ouvrir/fermer
+    [SerializeField] private CameraDetectionZone[] connectedCameras; // Caméras à désactiver
 
     [Header("Detection Settings")]
     [SerializeField] private string playerTag = "Player";
@@ -70,25 +80,49 @@ public class PressurePlate : MonoBehaviour
     }
 
     /// <summary>
-    /// Appuyer sur la plaque (ouvrir les portes)
+    /// Appuyer sur la plaque
     /// </summary>
     void Press()
     {
         isPressed = true;
         UpdatePlateState();
-        OpenDoors();
-        Debug.Log($"⬇️ Plaque {gameObject.name} appuyée");
+
+        // Exécuter l'action selon le type
+        switch (actionType)
+        {
+            case PlateAction.OpenDoors:
+                OpenDoors();
+                Debug.Log($"⬇️ Plaque {gameObject.name} appuyée - Portes ouvertes");
+                break;
+
+            case PlateAction.DisableCameras:
+                DisableCameras();
+                Debug.Log($"⬇️ Plaque {gameObject.name} appuyée - Caméras désactivées");
+                break;
+        }
     }
 
     /// <summary>
-    /// Relâcher la plaque (fermer les portes)
+    /// Relâcher la plaque
     /// </summary>
     void Release()
     {
         isPressed = false;
         UpdatePlateState();
-        CloseDoors();
-        Debug.Log($"⬆️ Plaque {gameObject.name} relâchée");
+
+        // Inverser l'action selon le type
+        switch (actionType)
+        {
+            case PlateAction.OpenDoors:
+                CloseDoors();
+                Debug.Log($"⬆️ Plaque {gameObject.name} relâchée - Portes fermées");
+                break;
+
+            case PlateAction.DisableCameras:
+                EnableCameras();
+                Debug.Log($"⬆️ Plaque {gameObject.name} relâchée - Caméras réactivées");
+                break;
+        }
     }
 
     /// <summary>
@@ -130,20 +164,69 @@ public class PressurePlate : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Désactive toutes les caméras connectées
+    /// </summary>
+    void DisableCameras()
+    {
+        foreach (CameraDetectionZone camera in connectedCameras)
+        {
+            if (camera != null)
+            {
+                camera.enabled = false; // Désactive le script de détection
+                Debug.Log($"📷 Caméra {camera.gameObject.name} désactivée");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Réactive toutes les caméras connectées
+    /// </summary>
+    void EnableCameras()
+    {
+        foreach (CameraDetectionZone camera in connectedCameras)
+        {
+            if (camera != null)
+            {
+                camera.enabled = true; // Réactive le script de détection
+                Debug.Log($"📷 Caméra {camera.gameObject.name} réactivée");
+            }
+        }
+    }
+
     // Visualisation dans l'éditeur
     void OnDrawGizmos()
     {
-        if (connectedDoors == null || connectedDoors.Length == 0)
-            return;
-
-        // Dessiner des lignes vers les portes connectées
-        Gizmos.color = isPressed ? Color.green : Color.yellow;
-        foreach (Door door in connectedDoors)
+        // Dessiner des lignes selon le type d'action
+        switch (actionType)
         {
-            if (door != null)
-            {
-                Gizmos.DrawLine(transform.position, door.transform.position);
-            }
+            case PlateAction.OpenDoors:
+                if (connectedDoors != null && connectedDoors.Length > 0)
+                {
+                    Gizmos.color = isPressed ? Color.green : Color.yellow;
+                    foreach (Door door in connectedDoors)
+                    {
+                        if (door != null)
+                        {
+                            Gizmos.DrawLine(transform.position, door.transform.position);
+                        }
+                    }
+                }
+                break;
+
+            case PlateAction.DisableCameras:
+                if (connectedCameras != null && connectedCameras.Length > 0)
+                {
+                    Gizmos.color = isPressed ? Color.green : Color.cyan;
+                    foreach (CameraDetectionZone camera in connectedCameras)
+                    {
+                        if (camera != null)
+                        {
+                            Gizmos.DrawLine(transform.position, camera.transform.position);
+                        }
+                    }
+                }
+                break;
         }
     }
 }

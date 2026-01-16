@@ -133,6 +133,25 @@ public class CameraDetectionZone : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Active ou désactive la caméra (appelé par PressurePlate)
+    /// </summary>
+    void OnEnable()
+    {
+        // Activer le mesh et le collider quand le script est activé
+        if (meshRenderer != null) meshRenderer.enabled = true;
+        if (circleCollider != null) circleCollider.enabled = true;
+    }
+
+    void OnDisable()
+    {
+        // Cacher le mesh et désactiver le collider quand le script est désactivé
+        if (meshRenderer != null) meshRenderer.enabled = false;
+        if (circleCollider != null) circleCollider.enabled = false;
+        playerDetected = false;
+        lastDetectedPlayer = null;
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag(playerTag) && other.isTrigger)

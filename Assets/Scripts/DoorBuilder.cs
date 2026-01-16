@@ -148,7 +148,8 @@ public class DoorBuilder : MonoBehaviour
         // SpriteRenderer
         SpriteRenderer sr = plateObj.AddComponent<SpriteRenderer>();
         sr.sprite = plaque_lev;
-        sr.sortingOrder = sortingOrder - 1; // Sous les portes
+        sr.sortingLayerName = "Default";
+        sr.sortingOrder = -20; // Sous la lumière des gardes (-10) et tout le reste
 
         // BoxCollider2D (trigger)
         BoxCollider2D collider = plateObj.AddComponent<BoxCollider2D>();
