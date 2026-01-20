@@ -10898,7 +10898,6 @@ GameObject:
   - component: {fileID: 774874948}
   - component: {fileID: 774874947}
   - component: {fileID: 774874945}
-  - component: {fileID: 774874949}
   - component: {fileID: 774874951}
   - component: {fileID: 774874950}
   - component: {fileID: 774874952}
@@ -10999,28 +10998,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &774874949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 774874944}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 29e7d1900472e468f844e75e9022345b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waypoints: []
-  moveSpeed: 2
-  waypointReachDistance: 0.1
-  waitTimeAtWaypoint: 1
-  animator: {fileID: 0}
-  spriteRenderer: {fileID: 0}
-  detectionZone: {fileID: 0}
-  waypointsToCreate: 4
-  waypointSpacing: 1.5
-  createInCircle: 1
 --- !u!50 &774874950
 Rigidbody2D:
   serializedVersion: 4
@@ -11080,7 +11057,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.3}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -11091,7 +11068,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.8, y: 1}
+  m_Size: {x: 0.7, y: 0.4}
   m_EdgeRadius: 0
 --- !u!114 &774874952
 MonoBehaviour:
@@ -21375,7 +21352,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: -0.3}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -21386,7 +21363,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.7, y: 1}
+  m_Size: {x: 0.7, y: 0.4}
   m_EdgeRadius: 0
 --- !u!114 &1559904419
 MonoBehaviour:

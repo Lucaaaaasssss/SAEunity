@@ -65,7 +65,7 @@ public class GameManager : MonoBehaviour
         // Si le jeu est terminé, écouter les touches pour restart/quit
         if (gameIsOver)
         {
-            if (Input.GetKeyDown(restartKey))
+            if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
             {
                 RestartGame();
             }
@@ -122,14 +122,9 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
-        // Rétablir le temps normal
-        Time.timeScale = 1f;
+        
+         Application.Quit();
 
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
     }
 
     public bool IsGameOver()

@@ -54,8 +54,8 @@ public class PressurePlate : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Détecter les joueurs (peut être le trigger enfant du PlayerDetectionCollider)
-        if (other.CompareTag(playerTag))
+        // Détecter uniquement le BoxCollider2D principal (pas le trigger enfant PlayerDetectionCollider)
+        if (other.CompareTag(playerTag) && !other.isTrigger)
         {
             playersOnPlate++;
 
@@ -68,7 +68,8 @@ public class PressurePlate : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag(playerTag))
+        // Détecter uniquement le BoxCollider2D principal (pas le trigger enfant PlayerDetectionCollider)
+        if (other.CompareTag(playerTag) && !other.isTrigger)
         {
             playersOnPlate--;
 

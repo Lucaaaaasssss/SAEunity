@@ -56,8 +56,8 @@ public class CharacterSwitcher : MonoBehaviour
 
     void Update()
     {
-        // Détecter l'appui sur la touche de switch
-        if (Input.GetKeyDown(switchKey))
+        // Détecter l'appui sur la touche de switch (P1_B1 pour la borne d'arcade)
+        if (Input.GetButtonDown("P1_B1") || Input.GetKeyDown(switchKey))
         {
             SwitchCharacter();
         }

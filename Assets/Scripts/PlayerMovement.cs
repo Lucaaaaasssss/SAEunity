@@ -40,6 +40,14 @@ public class PlayerMovement : MonoBehaviour
         }
         rb.gravityScale = 0f; // Pas de gravité en 2D top-down
         rb.constraints = RigidbodyConstraints2D.FreezeRotation; // Empêcher la rotation
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous; // Meilleure détection des collisions
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate; // Mouvement plus fluide
+
+        // Créer un matériau physique sans friction pour glisser le long des murs
+        PhysicsMaterial2D slipperyMaterial = new PhysicsMaterial2D("SlipperyPlayer");
+        slipperyMaterial.friction = 0f; // Pas de friction pour éviter les blocages
+        slipperyMaterial.bounciness = 0f; // Pas de rebond
+        rb.sharedMaterial = slipperyMaterial;
 
         // Trouver automatiquement le Ground si nécessaire
         if (autoFindGround && groundTransform == null)
@@ -161,18 +169,28 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
-        // Calculer la nouvelle position
-        Vector2 newPosition = rb.position + moveDirection * Time.fixedDeltaTime;
+        // Utiliser velocity au lieu de MovePosition pour un meilleur glissement le long des murs
+        // Avec friction=0, le joueur glisse naturellement même contre les obstacles
+        rb.velocity = moveDirection;
 
-        // Contraindre aux limites si activé
+        // Contraindre la position aux limites après le mouvement physique
         if (constrainToBounds && boundariesCalculated)
         {
-            newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-            newPosition.y = Mathf.Clamp(newPosition.y, minY, maxY);
-        }
+            Vector2 clampedPos = rb.position;
+            clampedPos.x = Mathf.Clamp(clampedPos.x, minX, maxX);
+            clampedPos.y = Mathf.Clamp(clampedPos.y, minY, maxY);
 
-        // Appliquer le mouvement avec Rigidbody2D (fluide avec les collisions)
-        rb.MovePosition(newPosition);
+            // Si on dépasse les limites, forcer la position
+            if (clampedPos != rb.position)
+            {
+                rb.position = clampedPos;
+                // Annuler la vélocité dans la direction bloquée
+                Vector2 vel = rb.velocity;
+                if (clampedPos.x != rb.position.x) vel.x = 0;
+                if (clampedPos.y != rb.position.y) vel.y = 0;
+                rb.velocity = vel;
+            }
+        }
     }
 
     void CalculateBoundaries()
@@ -243,6 +261,10 @@ public class PlayerMovement : MonoBehaviour
         if (!enabled)
         {
             moveDirection = Vector2.zero;
+            if (rb != null)
+            {
+                rb.velocity = Vector2.zero; // Arrêter complètement la vélocité
+            }
 
             // Remettre le sprite de face (idle)
             if (animator != null)

@@ -20,11 +20,16 @@ public class PlayerDetectionCollider : MonoBehaviour
 
     void SetupDetectionCollider()
     {
-        // Vérifier qu'il y a déjà un collider principal (pour les murs)
-        BoxCollider2D mainCollider = GetComponent<BoxCollider2D>();
+        // Vérifier qu'il y a déjà un collider principal (BoxCollider2D ou CapsuleCollider2D)
+        Collider2D mainCollider = GetComponent<BoxCollider2D>();
         if (mainCollider == null)
         {
-            Debug.LogWarning($"⚠️ {gameObject.name} n'a pas de BoxCollider2D principal !");
+            mainCollider = GetComponent<CapsuleCollider2D>();
+        }
+
+        if (mainCollider == null)
+        {
+            Debug.LogWarning($"⚠️ {gameObject.name} n'a pas de Collider2D principal !");
             return;
         }
 
