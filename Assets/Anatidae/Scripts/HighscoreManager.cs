@@ -7,6 +7,13 @@ using System.Text;
 
 namespace Anatidae {
 
+    [Serializable]
+    public class ProxyPostRequestHighscore
+    {
+        public string url;
+        public HighscoreManager.HighscoreEntry data;
+    }
+
     public class HighscoreManager : MonoBehaviour
     {
         // Changez cette variable par le nom de votre jeu
@@ -15,6 +22,13 @@ namespace Anatidae {
         public static string GameName = "Runaway_v1";
         // Changez cette variable pour définir quand est-ce qu'un score est considéré comme un highscore (top 10 par défaut)
         const int NumHighscores = 10;
+
+        // CONFIGURATION : Changez ces URLs selon votre environnement
+        // Pour utiliser le VPS : mettre USE_PROXY = true et renseigner VPS_BASE_URL
+        // Pour utiliser en local direct : mettre USE_PROXY = false
+        private const bool USE_PROXY = false;
+        private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy";
+        private const string VPS_BASE_URL = "http://localhost:3000"; // Serveur local anatidae-arcade
 
         [Serializable]
         public struct HighscoreData
@@ -101,12 +115,28 @@ namespace Anatidae {
         public static IEnumerator FetchHighscores()
         {
             Debug.Log("HighscoreManager: Fetching highscores...");
-            UnityWebRequest request = UnityWebRequest.Get("http://localhost:3000/api/?game=" + GameName);
+            string apiUrl = VPS_BASE_URL + "/api/?game=" + GameName;
+            string requestUrl;
+
+            if (USE_PROXY)
+            {
+                // Utiliser le proxy pour contourner CORS
+                requestUrl = LOCAL_PROXY_URL + "?url=" + UnityWebRequest.EscapeURL(apiUrl);
+                Debug.Log("HighscoreManager: Using proxy to fetch from " + apiUrl);
+            }
+            else
+            {
+                // Appel direct (pour tests locaux)
+                requestUrl = apiUrl;
+                Debug.Log("HighscoreManager: Direct fetch from " + apiUrl);
+            }
+
+            UnityWebRequest request = UnityWebRequest.Get(requestUrl);
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
             {
-                Debug.LogError(request.error);
+                Debug.LogError("HighscoreManager: " + request.error);
             }
             else
             {
@@ -115,29 +145,61 @@ namespace Anatidae {
                     HighscoreData highscoreData = JsonUtility.FromJson<HighscoreData>(data);
                     Highscores = highscoreData.highscores;
                     HasFetchedHighscores = true;
-                    Debug.Log("HighscoreManager: Highscores fetched!");
+                    Debug.Log("HighscoreManager: Highscores fetched successfully!");
                 } catch (Exception e) {
-                    Debug.LogError(e);
+                    Debug.LogError("HighscoreManager: " + e);
                 }
             }
         }
 
         public static IEnumerator SetHighscore(string name, int score)
         {
-            Debug.Log(JsonUtility.ToJson(new HighscoreEntry { name = name, score = score }));
+            HighscoreEntry entry = new HighscoreEntry { name = name, score = score };
+            Debug.Log("HighscoreManager: Setting highscore: " + JsonUtility.ToJson(entry));
 
-            UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/?game=" + GameName)
+            string apiUrl = VPS_BASE_URL + "/api/?game=" + GameName;
+            UnityWebRequest request;
+
+            if (USE_PROXY)
             {
-                method = UnityWebRequest.kHttpVerbPOST,
-                uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(JsonUtility.ToJson(new HighscoreEntry { name = name, score = score })))
+                // Utiliser le proxy POST
+                ProxyPostRequestHighscore proxyRequest = new ProxyPostRequestHighscore
                 {
-                    contentType = "application/json"
-                }
-            };
-            
+                    url = apiUrl,
+                    data = entry
+                };
+
+                request = new UnityWebRequest(LOCAL_PROXY_URL)
+                {
+                    method = UnityWebRequest.kHttpVerbPOST,
+                    uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(JsonUtility.ToJson(proxyRequest)))
+                    {
+                        contentType = "application/json"
+                    },
+                    downloadHandler = new DownloadHandlerBuffer()
+                };
+                Debug.Log("HighscoreManager: Using proxy to post to " + apiUrl);
+            }
+            else
+            {
+                // Appel direct
+                request = new UnityWebRequest(apiUrl)
+                {
+                    method = UnityWebRequest.kHttpVerbPOST,
+                    uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(JsonUtility.ToJson(entry)))
+                    {
+                        contentType = "application/json"
+                    },
+                    downloadHandler = new DownloadHandlerBuffer()
+                };
+                Debug.Log("HighscoreManager: Direct post to " + apiUrl);
+            }
+
             yield return request.SendWebRequest();
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
-                Debug.LogError(request.error);
+                Debug.LogError("HighscoreManager: " + request.error);
+            else
+                Debug.Log("HighscoreManager: Highscore set successfully!");
 
             yield return FetchHighscores();
         }

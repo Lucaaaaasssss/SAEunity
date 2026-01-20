@@ -1,0 +1,154 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using Anatidae;
+
+public class MainMenuController : MonoBehaviour
+{
+    [Header("Panels")]
+    [SerializeField] private GameObject mainMenuPanel;
+    [SerializeField] private GameObject modeSelectPanel;
+    [SerializeField] private GameObject highscoresPanel;
+
+    [Header("Scene Settings")]
+    [SerializeField] private string gameSceneName = "MainScene";
+
+    private enum MenuState
+    {
+        MainMenu,
+        ModeSelect,
+        Highscores
+    }
+
+    private MenuState currentState = MenuState.MainMenu;
+
+    void Start()
+    {
+        // S'assurer que GameModeManager existe
+        if (GameModeManager.Instance == null)
+        {
+            GameObject gmm = new GameObject("GameModeManager");
+            gmm.AddComponent<GameModeManager>();
+        }
+
+        ShowMainMenu();
+    }
+
+    void Update()
+    {
+        switch (currentState)
+        {
+            case MenuState.MainMenu:
+                HandleMainMenuInput();
+                break;
+            case MenuState.ModeSelect:
+                HandleModeSelectInput();
+                break;
+            case MenuState.Highscores:
+                HandleHighscoresInput();
+                break;
+        }
+    }
+
+    void HandleMainMenuInput()
+    {
+        // B1 ou F = Jouer (va à l'écran de sélection Solo/Duo)
+        if (Input.GetButtonDown("P1_B1") || Input.GetKeyDown(KeyCode.F))
+        {
+            ShowModeSelect();
+        }
+        // B2 ou R = Highscores
+        else if (Input.GetButtonDown("P1_B2") || Input.GetKeyDown(KeyCode.R))
+        {
+            ShowHighscores();
+        }
+        // Échap = Quitter
+        else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            QuitGame();
+        }
+    }
+
+    void QuitGame()
+    {
+        Debug.Log("Quitting game...");
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
+    }
+
+    void HandleModeSelectInput()
+    {
+        // B1 ou F = Solo
+        if (Input.GetButtonDown("P1_B1") || Input.GetKeyDown(KeyCode.F))
+        {
+            StartGame(GameMode.Solo);
+        }
+        // B2 ou R = Duo
+        else if (Input.GetButtonDown("P1_B2") || Input.GetKeyDown(KeyCode.R))
+        {
+            StartGame(GameMode.Duo);
+        }
+        // B3 ou Echap = Retour
+        else if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(KeyCode.Escape))
+        {
+            ShowMainMenu();
+        }
+    }
+
+    void HandleHighscoresInput()
+    {
+        // N'importe quel bouton pour revenir
+        if (Input.GetButtonDown("P1_B1") || Input.GetButtonDown("P1_B2") || Input.GetButtonDown("P1_B3") ||
+            Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.R))
+        {
+            ShowMainMenu();
+        }
+    }
+
+    void ShowMainMenu()
+    {
+        currentState = MenuState.MainMenu;
+        SetPanelActive(mainMenuPanel, true);
+        SetPanelActive(modeSelectPanel, false);
+        SetPanelActive(highscoresPanel, false);
+        HighscoreManager.HideHighscores();
+        Debug.Log("Menu: Main Menu");
+    }
+
+    void ShowModeSelect()
+    {
+        currentState = MenuState.ModeSelect;
+        SetPanelActive(mainMenuPanel, false);
+        SetPanelActive(modeSelectPanel, true);
+        SetPanelActive(highscoresPanel, false);
+        Debug.Log("Menu: Mode Select");
+    }
+
+    void ShowHighscores()
+    {
+        currentState = MenuState.Highscores;
+        SetPanelActive(mainMenuPanel, false);
+        SetPanelActive(modeSelectPanel, false);
+        SetPanelActive(highscoresPanel, true);
+        HighscoreManager.ShowHighscores();
+        Debug.Log("Menu: Highscores");
+    }
+
+    void SetPanelActive(GameObject panel, bool active)
+    {
+        if (panel != null)
+        {
+            panel.SetActive(active);
+        }
+    }
+
+    void StartGame(GameMode mode)
+    {
+        GameModeManager.Instance.SetMode(mode);
+        Debug.Log($"Starting game in {mode} mode");
+        SceneManager.LoadScene(gameSceneName);
+    }
+}

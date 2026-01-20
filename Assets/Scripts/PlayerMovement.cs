@@ -238,6 +238,24 @@ public class PlayerMovement : MonoBehaviour
     public void SetControlEnabled(bool enabled)
     {
         controlEnabled = enabled;
+
+        // Stopper le mouvement quand on désactive le contrôle
+        if (!enabled)
+        {
+            moveDirection = Vector2.zero;
+
+            // Remettre le sprite de face (idle)
+            if (animator != null)
+            {
+                animator.SetBool("isMovingDown", false);
+                animator.SetBool("isMovingUp", false);
+                animator.SetBool("isMovingRight", false);
+            }
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.flipX = false;
+            }
+        }
     }
 
     void OnDrawGizmos()

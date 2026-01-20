@@ -3,13 +3,14 @@
 */
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Runtime.InteropServices;
 using TMPro;
 
 public class MenuManager : MonoBehaviour
 {
     [SerializeField] TMP_Text quitText;
-    const float AfkTime = 60f;
+    const float AfkTime = 30f;
     float afkTimer = 0f;
     const float HeldQuitTime = 1.5f;
     float heldQuitTimer = 0f;
@@ -34,6 +35,11 @@ public class MenuManager : MonoBehaviour
     void Update()
     {
         if (heldQuitTimer >= HeldQuitTime || afkTimer >= AfkTime) {
+            BackToMenu();
+        }
+
+        // Échap pour quitter (test clavier)
+        if (Input.GetKeyDown(KeyCode.Escape)) {
             BackToMenu();
         }
 
