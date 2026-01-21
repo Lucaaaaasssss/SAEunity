@@ -31,6 +31,9 @@ public class CameraDetectionZone : MonoBehaviour
     [Tooltip("SpriteRenderer de la caméra (GameObject parent)")]
     [SerializeField] private SpriteRenderer cameraSpriteRenderer;
 
+    [Tooltip("Sorting order de la caméra (doit être > 0 pour être au-dessus des joueurs)")]
+    [SerializeField] private int cameraSortingOrder = 10;
+
     private CircleCollider2D circleCollider;
     private bool playerDetected = false;
     private GameObject lastDetectedPlayer;
@@ -45,8 +48,39 @@ public class CameraDetectionZone : MonoBehaviour
         SetupCollider();
         SetupVisualization();
 
-        // Initialiser le sprite au démarrage (caméra active par défaut)
+        // Initialiser le sprite et sorting order au démarrage (caméra active par défaut)
         UpdateCameraSprite(true);
+    }
+
+    void Awake()
+    {
+        // S'assurer que le sorting order est correct dès le début
+        SetupCameraSortingOrder();
+    }
+
+    /// <summary>
+    /// Configure le sorting order de la caméra pour qu'elle soit au-dessus des joueurs
+    /// </summary>
+    void SetupCameraSortingOrder()
+    {
+        // Trouver le SpriteRenderer de la caméra
+        if (cameraSpriteRenderer == null && transform.parent != null)
+        {
+            cameraSpriteRenderer = transform.parent.GetComponent<SpriteRenderer>();
+        }
+
+        if (cameraSpriteRenderer == null)
+        {
+            cameraSpriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        // Configurer le sorting order
+        if (cameraSpriteRenderer != null)
+        {
+            cameraSpriteRenderer.sortingLayerName = "Default";
+            cameraSpriteRenderer.sortingOrder = cameraSortingOrder;
+            Debug.Log($"📷 Caméra {gameObject.name} sorting order configuré à {cameraSortingOrder}");
+        }
     }
 
     void SetupCollider()
@@ -193,6 +227,11 @@ public class CameraDetectionZone : MonoBehaviour
         // Changer le sprite si tout est assigné
         if (cameraSpriteRenderer != null)
         {
+            // Configurer le sorting order pour être au-dessus des joueurs
+            cameraSpriteRenderer.sortingLayerName = "Default";
+            cameraSpriteRenderer.sortingOrder = cameraSortingOrder;
+
+            // Changer le sprite selon l'état
             if (isActive && cameraOnSprite != null)
             {
                 cameraSpriteRenderer.sprite = cameraOnSprite;
