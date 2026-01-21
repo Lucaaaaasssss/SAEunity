@@ -21,6 +21,16 @@ public class CameraDetectionZone : MonoBehaviour
     [SerializeField] private Color detectionColor = new Color(1f, 0f, 0f, 0.3f); // Rouge quand détecté
     [SerializeField] private Color normalColor = new Color(0f, 0.5f, 1f, 0.3f); // Bleu clair normalement
 
+    [Header("Camera Sprites")]
+    [Tooltip("Sprite de la caméra active (allumée)")]
+    [SerializeField] private Sprite cameraOnSprite;
+
+    [Tooltip("Sprite de la caméra éteinte (désactivée)")]
+    [SerializeField] private Sprite cameraOffSprite;
+
+    [Tooltip("SpriteRenderer de la caméra (GameObject parent)")]
+    [SerializeField] private SpriteRenderer cameraSpriteRenderer;
+
     private CircleCollider2D circleCollider;
     private bool playerDetected = false;
     private GameObject lastDetectedPlayer;
@@ -34,6 +44,9 @@ public class CameraDetectionZone : MonoBehaviour
     {
         SetupCollider();
         SetupVisualization();
+
+        // Initialiser le sprite au démarrage (caméra active par défaut)
+        UpdateCameraSprite(true);
     }
 
     void SetupCollider()
@@ -141,6 +154,10 @@ public class CameraDetectionZone : MonoBehaviour
         // Activer le mesh et le collider quand le script est activé
         if (meshRenderer != null) meshRenderer.enabled = true;
         if (circleCollider != null) circleCollider.enabled = true;
+
+        // Changer le sprite pour la caméra allumée
+        UpdateCameraSprite(true);
+        Debug.Log($"📷 Caméra {gameObject.name} ACTIVÉE");
     }
 
     void OnDisable()
@@ -150,6 +167,41 @@ public class CameraDetectionZone : MonoBehaviour
         if (circleCollider != null) circleCollider.enabled = false;
         playerDetected = false;
         lastDetectedPlayer = null;
+
+        // Changer le sprite pour la caméra éteinte
+        UpdateCameraSprite(false);
+        Debug.Log($"📷 Caméra {gameObject.name} DÉSACTIVÉE");
+    }
+
+    /// <summary>
+    /// Met à jour le sprite de la caméra selon son état
+    /// </summary>
+    void UpdateCameraSprite(bool isActive)
+    {
+        // Si aucun SpriteRenderer assigné, essayer de le trouver sur le parent
+        if (cameraSpriteRenderer == null && transform.parent != null)
+        {
+            cameraSpriteRenderer = transform.parent.GetComponent<SpriteRenderer>();
+        }
+
+        // Si toujours pas trouvé, chercher sur ce GameObject
+        if (cameraSpriteRenderer == null)
+        {
+            cameraSpriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        // Changer le sprite si tout est assigné
+        if (cameraSpriteRenderer != null)
+        {
+            if (isActive && cameraOnSprite != null)
+            {
+                cameraSpriteRenderer.sprite = cameraOnSprite;
+            }
+            else if (!isActive && cameraOffSprite != null)
+            {
+                cameraSpriteRenderer.sprite = cameraOffSprite;
+            }
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
