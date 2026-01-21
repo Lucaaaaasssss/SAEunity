@@ -3,12 +3,15 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using Anatidae;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     [Header("Game Over Settings")]
     [SerializeField] private GameObject gameOverPanel; // Panel UI pour le game over
     [SerializeField] private TextMeshProUGUI gameOverText; // Texte du game over
+    [SerializeField] private Image retourImage; // Image RETOUR.PNG
+    [SerializeField] private Vector2 retourImageSize = new Vector2(200f, 200f); // Taille de l'image RETOUR
     [SerializeField] private bool pauseGameOnGameOver = true;
 
     [Header("Victory Settings")]
@@ -49,6 +52,12 @@ public class GameManager : MonoBehaviour
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(false);
+        }
+
+        // Cacher l'image RETOUR au départ
+        if (retourImage != null)
+        {
+            retourImage.gameObject.SetActive(false);
         }
 
         // Charger et appliquer les paramètres du jeu
@@ -97,10 +106,22 @@ public class GameManager : MonoBehaviour
             gameOverPanel.SetActive(true);
         }
 
-        // Mettre à jour le texte
+        // Afficher "vous avez été repéré"
         if (gameOverText != null)
         {
-            gameOverText.text = reason;
+            gameOverText.text = "vous avez été repéré";
+        }
+
+        // Afficher l'image RETOUR.PNG
+        if (retourImage != null)
+        {
+            retourImage.preserveAspect = true;
+            RectTransform rectTransform = retourImage.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.sizeDelta = retourImageSize;
+            }
+            retourImage.gameObject.SetActive(true);
         }
 
         // Mettre le jeu en pause
