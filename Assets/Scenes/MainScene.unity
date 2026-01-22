@@ -12828,6 +12828,10 @@ MonoBehaviour:
   useArcadeControls: 1
   horizontalAxis: P1_Horizontal
   verticalAxis: P1_Vertical
+  footstepAudioSource: {fileID: 0}
+  footstepSounds: []
+  footstepInterval: 0.4
+  footstepVolume: 0.5
   constrainToBounds: 1
   boundaryPadding: 0.5
   groundTransform: {fileID: 0}
@@ -22285,6 +22289,11 @@ MonoBehaviour:
   useArcadeControls: 1
   horizontalAxis: P1_Horizontal
   verticalAxis: P1_Vertical
+  footstepAudioSource: {fileID: 0}
+  footstepSounds:
+  - {fileID: 8300000, guid: 2c87eca5e082abf4b9f7fdd9d0639f69, type: 3}
+  footstepInterval: 0.4
+  footstepVolume: 0.5
   constrainToBounds: 1
   boundaryPadding: 0.5
   groundTransform: {fileID: 0}
