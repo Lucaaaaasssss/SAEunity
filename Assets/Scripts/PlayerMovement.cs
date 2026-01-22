@@ -11,6 +11,19 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private string horizontalAxis = "P1_Horizontal";
     [SerializeField] private string verticalAxis = "P1_Vertical";
 
+    [Header("Footstep Sounds")]
+    [Tooltip("AudioSource pour les sons de pas (auto-créé si vide)")]
+    [SerializeField] private AudioSource footstepAudioSource;
+
+    [Tooltip("Sons de pas à jouer aléatoirement")]
+    [SerializeField] private AudioClip[] footstepSounds;
+
+    [Tooltip("Intervalle entre chaque son de pas (en secondes)")]
+    [SerializeField] private float footstepInterval = 0.4f;
+
+    [Tooltip("Volume des sons de pas (0 à 1)")]
+    [SerializeField] private float footstepVolume = 0.5f;
+
     [Header("Boundaries")]
     [SerializeField] private bool constrainToBounds = true;
     [SerializeField] private float boundaryPadding = 0.5f;
@@ -25,6 +38,10 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private bool controlEnabled = true; // Pour le système de switch de personnages
     private bool timerStarted = false; // Pour démarrer le timer au premier mouvement
+
+    // Footstep timer
+    private float footstepTimer = 0f;
+    private bool isMoving = false;
 
     void Start()
     {
@@ -49,6 +66,9 @@ public class PlayerMovement : MonoBehaviour
         slipperyMaterial.bounciness = 0f; // Pas de rebond
         rb.sharedMaterial = slipperyMaterial;
 
+        // Configurer l'AudioSource pour les sons de pas
+        SetupFootstepAudio();
+
         // Trouver automatiquement le Ground si nécessaire
         if (autoFindGround && groundTransform == null)
         {
@@ -67,10 +87,35 @@ public class PlayerMovement : MonoBehaviour
         // Ne pas calculer les limites immédiatement, attendre que Ground soit initialisé
     }
 
+    void SetupFootstepAudio()
+    {
+        // Créer un AudioSource si non assigné
+        if (footstepAudioSource == null)
+        {
+            footstepAudioSource = GetComponent<AudioSource>();
+
+            if (footstepAudioSource == null)
+            {
+                footstepAudioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+
+        // Configurer l'AudioSource
+        footstepAudioSource.playOnAwake = false;
+        footstepAudioSource.loop = false;
+        footstepAudioSource.spatialBlend = 0f; // 2D sound (pas de 3D spatial)
+        footstepAudioSource.volume = footstepVolume;
+
+        Debug.Log($"✅ AudioSource des pas configuré pour {gameObject.name}");
+    }
+
     void Update()
     {
         // Gérer les inputs dans Update
         HandleInput();
+
+        // Gérer les sons de pas
+        HandleFootsteps();
     }
 
     void FixedUpdate()
@@ -136,6 +181,9 @@ public class PlayerMovement : MonoBehaviour
             verticalInput * moveSpeed
         );
 
+        // Détecter si le personnage bouge (pour les sons de pas)
+        isMoving = (horizontalInput != 0 || verticalInput != 0);
+
         // Contrôler l'animation selon la direction
         if (animator != null)
         {
@@ -163,6 +211,47 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
+    }
+
+    void HandleFootsteps()
+    {
+        // Ne pas jouer de sons si le contrôle est désactivé
+        if (!controlEnabled) return;
+
+        // Si le personnage bouge
+        if (isMoving && controlEnabled)
+        {
+            // Incrémenter le timer
+            footstepTimer += Time.deltaTime;
+
+            // Jouer un son de pas quand le timer dépasse l'intervalle
+            if (footstepTimer >= footstepInterval)
+            {
+                PlayFootstepSound();
+                footstepTimer = 0f; // Réinitialiser le timer
+            }
+        }
+        else
+        {
+            // Réinitialiser le timer quand le personnage s'arrête
+            footstepTimer = 0f;
+        }
+    }
+
+    void PlayFootstepSound()
+    {
+        // Vérifier qu'on a des sons et un AudioSource
+        if (footstepSounds == null || footstepSounds.Length == 0 || footstepAudioSource == null)
+            return;
+
+        // Choisir un son aléatoire parmi ceux disponibles
+        AudioClip randomFootstep = footstepSounds[Random.Range(0, footstepSounds.Length)];
+
+        // Jouer le son (PlayOneShot permet de jouer plusieurs sons sans se chevaucher)
+        if (randomFootstep != null)
+        {
+            footstepAudioSource.PlayOneShot(randomFootstep, footstepVolume);
+        }
     }
 
     void ApplyMovement()
@@ -261,6 +350,9 @@ public class PlayerMovement : MonoBehaviour
         if (!enabled)
         {
             moveDirection = Vector2.zero;
+            isMoving = false;
+            footstepTimer = 0f; // Réinitialiser le timer de pas
+
             if (rb != null)
             {
                 rb.velocity = Vector2.zero; // Arrêter complètement la vélocité
