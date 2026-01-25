@@ -30,6 +30,10 @@ public class PressurePlate : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private BoxCollider2D plateCollider;
 
+    [Header("Sound")]
+    [SerializeField] private AudioClip plateSound; // Son à jouer quand on monte sur la dalle
+    private AudioSource audioSource;
+
     private int playersOnPlate = 0; // Nombre de joueurs sur la plaque
     private bool isPressed = false;
 
@@ -46,6 +50,13 @@ public class PressurePlate : MonoBehaviour
             {
                 plateCollider.isTrigger = true; // La plaque doit être un trigger
             }
+        }
+
+        // Initialiser l'AudioSource
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
 
         // Appliquer l'état initial
@@ -87,6 +98,12 @@ public class PressurePlate : MonoBehaviour
     {
         isPressed = true;
         UpdatePlateState();
+
+        // Jouer le son de la dalle
+        if (audioSource != null && plateSound != null)
+        {
+            audioSource.PlayOneShot(plateSound);
+        }
 
         // Exécuter l'action selon le type
         switch (actionType)
