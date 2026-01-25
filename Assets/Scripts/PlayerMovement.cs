@@ -131,6 +131,15 @@ public class PlayerMovement : MonoBehaviour
         // Ne pas traiter les inputs si le contrôle est désactivé
         if (!controlEnabled) return;
 
+        // Ne pas traiter les inputs si l'écran de saisie du pseudo est affiché
+        if (Anatidae.HighscoreManager.IsHighscoreInputScreenShown)
+        {
+            // Stopper le personnage
+            moveDirection = Vector2.zero;
+            if (rb != null) rb.velocity = Vector2.zero;
+            return;
+        }
+
         // Calculer les limites si pas encore fait et que le Ground a une taille valide
         if (!boundariesCalculated && constrainToBounds)
         {

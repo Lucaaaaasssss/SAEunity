@@ -56,6 +56,12 @@ public class CharacterSwitcher : MonoBehaviour
 
     void Update()
     {
+        // Ne pas traiter les inputs si l'écran de saisie du pseudo est affiché
+        if (Anatidae.HighscoreManager.IsHighscoreInputScreenShown)
+        {
+            return;
+        }
+
         // Détecter l'appui sur la touche de switch (P1_B1 pour la borne d'arcade)
         if (Input.GetButtonDown("P1_B1") || Input.GetKeyDown(switchKey))
         {

@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Victory Settings")]
     [SerializeField] private GameObject victoryPanel; // Panel UI pour la victoire
+    [SerializeField] private GameObject scoreSubmittedPanel; // Panel affiché après envoi du score
 
     [Header("Game Over Actions")]
     [SerializeField] private KeyCode restartKey = KeyCode.R;
@@ -24,6 +25,8 @@ public class GameManager : MonoBehaviour
     private bool gameIsOver = false;
     private bool hasWon = false;
     private int finalTimeInCentiseconds = 0; // Stocke le temps pour l'enregistrement
+    private bool wasShowingHighscoreInput = false; // Pour détecter quand l'écran de saisie se ferme
+    private bool scoreWasSubmitted = false; // Pour savoir si le score a été envoyé
 
     public static GameManager Instance { get; private set; }
 
@@ -54,6 +57,12 @@ public class GameManager : MonoBehaviour
             victoryPanel.SetActive(false);
         }
 
+        // Cacher le panel de score envoyé au départ
+        if (scoreSubmittedPanel != null)
+        {
+            scoreSubmittedPanel.SetActive(false);
+        }
+
         // Cacher l'image RETOUR au départ
         if (retourImage != null)
         {
@@ -71,9 +80,38 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        // Détecter quand l'écran de saisie du pseudo se ferme (score envoyé)
+        if (wasShowingHighscoreInput && !Anatidae.HighscoreManager.IsHighscoreInputScreenShown)
+        {
+            wasShowingHighscoreInput = false;
+            scoreWasSubmitted = true;
+
+            // Afficher le panel "score envoyé"
+            if (scoreSubmittedPanel != null)
+            {
+                scoreSubmittedPanel.SetActive(true);
+            }
+        }
+
+        // Mettre à jour le tracking de l'écran de saisie
+        if (Anatidae.HighscoreManager.IsHighscoreInputScreenShown)
+        {
+            wasShowingHighscoreInput = true;
+        }
+
         // Si le jeu est terminé, écouter les touches
         if (gameIsOver)
         {
+            // Si le score a été envoyé, attendre P1_B3 pour relancer
+            if (scoreWasSubmitted)
+            {
+                if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+                {
+                    RestartGame();
+                }
+                return;
+            }
+
             // Si c'est une victoire
             if (hasWon)
             {
@@ -108,6 +146,11 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void SaveScore()
     {
+        Debug.Log("SaveScore() appelé - Temps: " + finalTimeInCentiseconds);
+
+        // Remettre le temps normal pour que l'UI fonctionne
+        Time.timeScale = 1f;
+
         // Cacher le panel de victoire
         if (victoryPanel != null)
         {
