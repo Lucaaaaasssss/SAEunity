@@ -108,17 +108,20 @@ public class PickupItem : MonoBehaviour
 
     void PickUp()
     {
-        // Ajouter à l'inventaire
-        if (PlayerInventory.Instance != null)
+        // Ajouter à l'inventaire du joueur qui est à portée
+        if (playerInRange != null)
         {
-            PlayerInventory.Instance.AddItem(itemName);
+            PlayerInventory inventory = playerInRange.GetComponent<PlayerInventory>();
+            if (inventory != null)
+            {
+                inventory.AddItem(itemName);
+                Debug.Log($"{playerInRange.name} a ramassé: {itemName}");
+            }
+            else
+            {
+                Debug.LogWarning($"PlayerInventory non trouvé sur {playerInRange.name}! Ajoute le script PlayerInventory sur ce joueur.");
+            }
         }
-        else
-        {
-            Debug.LogWarning("PlayerInventory non trouvé! Crée un GameObject avec le script PlayerInventory.");
-        }
-
-        Debug.Log($"Ramassé: {itemName}");
 
         // Détruire l'objet
         Destroy(gameObject);

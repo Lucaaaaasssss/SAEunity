@@ -3,26 +3,12 @@ using System.Collections.Generic;
 
 public class PlayerInventory : MonoBehaviour
 {
-    public static PlayerInventory Instance { get; private set; }
-
     private HashSet<string> items = new HashSet<string>();
-
-    void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
 
     public void AddItem(string itemName)
     {
         items.Add(itemName);
-        Debug.Log($"Inventaire: {itemName} ajouté");
+        Debug.Log($"{gameObject.name} - Inventaire: {itemName} ajouté");
     }
 
     public bool HasItem(string itemName)
@@ -33,6 +19,6 @@ public class PlayerInventory : MonoBehaviour
     public void RemoveItem(string itemName)
     {
         items.Remove(itemName);
-        Debug.Log($"Inventaire: {itemName} retiré");
+        Debug.Log($"{gameObject.name} - Inventaire: {itemName} retiré");
     }
 }

@@ -28,8 +28,8 @@ public class Door : MonoBehaviour
     [SerializeField] private Sprite indicatorSprite;
     [SerializeField] private Vector3 indicatorOffset = new Vector3(0, 1f, 0);
 
-    [Header("Collider")]
-    [SerializeField] private Collider2D doorCollider;
+    [Header("Colliders")]
+    [SerializeField] private Collider2D[] doorColliders;
 
     [Header("State")]
     [SerializeField] private bool isOpen = false;
@@ -38,6 +38,7 @@ public class Door : MonoBehaviour
     private SpriteRenderer indicatorRenderer;
     private bool isPlayerNear = false;
     private bool hasKey = false;
+    private PlayerInventory playerWithKey;
 
     [Serializable]
     public class DoorPart
@@ -49,9 +50,15 @@ public class Door : MonoBehaviour
 
     void Start()
     {
-        // Auto-find collider si non assigné
-        if (doorCollider == null)
-            doorCollider = GetComponent<Collider2D>();
+        // Auto-find colliders si non assignés
+        if (doorColliders == null || doorColliders.Length == 0)
+        {
+            Collider2D col = GetComponent<Collider2D>();
+            if (col != null)
+            {
+                doorColliders = new Collider2D[] { col };
+            }
+        }
 
         // Si pas de parts définies, chercher dans les enfants
         if ((doorParts == null || doorParts.Length == 0) && spriteRenderer == null)
@@ -111,6 +118,7 @@ public class Door : MonoBehaviour
 
         isPlayerNear = false;
         hasKey = false;
+        playerWithKey = null;
 
         foreach (GameObject player in players)
         {
@@ -120,11 +128,15 @@ public class Door : MonoBehaviour
             {
                 isPlayerNear = true;
 
-                if (PlayerInventory.Instance != null && PlayerInventory.Instance.HasItem(requiredItem))
+                // Vérifier si CE joueur a la clé
+                PlayerInventory inventory = player.GetComponent<PlayerInventory>();
+                if (inventory != null && inventory.HasItem(requiredItem))
                 {
                     hasKey = true;
+                    playerWithKey = inventory;
+                    break; // On a trouvé un joueur avec la clé, on peut arrêter
                 }
-                break;
+                // Sinon on continue à chercher parmi les autres joueurs
             }
         }
 
@@ -140,9 +152,10 @@ public class Door : MonoBehaviour
 
         isOpen = true;
 
-        if (consumeKey && PlayerInventory.Instance != null)
+        // Retirer la clé de l'inventaire du joueur qui l'a
+        if (consumeKey && playerWithKey != null)
         {
-            PlayerInventory.Instance.RemoveItem(requiredItem);
+            playerWithKey.RemoveItem(requiredItem);
         }
 
         UpdateDoorState();
@@ -181,10 +194,16 @@ public class Door : MonoBehaviour
             spriteRenderer.sprite = isOpen ? openSprite : closedSprite;
         }
 
-        // Désactiver le collider quand ouvert
-        if (doorCollider != null)
+        // Désactiver les colliders quand ouvert
+        if (doorColliders != null)
         {
-            doorCollider.enabled = !isOpen;
+            foreach (Collider2D col in doorColliders)
+            {
+                if (col != null)
+                {
+                    col.enabled = !isOpen;
+                }
+            }
         }
     }
 
