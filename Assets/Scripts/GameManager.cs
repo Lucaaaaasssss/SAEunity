@@ -16,7 +16,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Victory Settings")]
     [SerializeField] private GameObject victoryPanel; // Panel UI pour la victoire
-    [SerializeField] private TextMeshProUGUI victoryTimeText; // Affichage du temps final
 
     [Header("Game Over Actions")]
     [SerializeField] private KeyCode restartKey = KeyCode.R;
@@ -24,6 +23,7 @@ public class GameManager : MonoBehaviour
 
     private bool gameIsOver = false;
     private bool hasWon = false;
+    private int finalTimeInCentiseconds = 0; // Stocke le temps pour l'enregistrement
 
     public static GameManager Instance { get; private set; }
 
@@ -71,18 +71,51 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // Si le jeu est terminé, écouter les touches pour restart/quit
+        // Si le jeu est terminé, écouter les touches
         if (gameIsOver)
         {
-            if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+            // Si c'est une victoire
+            if (hasWon)
             {
-                RestartGame();
+                // P1_B3 = Relancer une partie
+                if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+                {
+                    RestartGame();
+                }
+                // P1_B6 = Enregistrer son temps
+                else if (Input.GetButtonDown("P1_B6"))
+                {
+                    SaveScore();
+                }
             }
-            else if (Input.GetKeyDown(quitKey))
+            // Si c'est un game over (défaite)
+            else
             {
-                QuitGame();
+                if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+                {
+                    RestartGame();
+                }
+                else if (Input.GetKeyDown(quitKey))
+                {
+                    QuitGame();
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// Affiche l'écran de saisie du pseudo pour enregistrer le score
+    /// </summary>
+    private void SaveScore()
+    {
+        // Cacher le panel de victoire
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(false);
+        }
+
+        // Afficher l'écran de saisie du pseudo
+        Anatidae.HighscoreManager.ShowHighscoreInput(finalTimeInCentiseconds);
     }
 
     public void TriggerGameOver(string reason = "Game Over!")
@@ -159,7 +192,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Déclenche la victoire et envoie le score à l'API
+    /// Déclenche la victoire et affiche l'écran de victoire
     /// </summary>
     public void TriggerVictory()
     {
@@ -180,59 +213,17 @@ public class GameManager : MonoBehaviour
             Debug.Log($"Temps final: {SpeedrunTimer.FormatTime(finalTime)}");
         }
 
+        // Stocker le temps pour l'enregistrement ultérieur
+        finalTimeInCentiseconds = Mathf.RoundToInt(finalTime * 100f);
+
         // Afficher le panel de victoire
         if (victoryPanel != null)
         {
             victoryPanel.SetActive(true);
-
-            // Afficher le temps
-            if (victoryTimeText != null)
-            {
-                victoryTimeText.text = $"Temps: {SpeedrunTimer.FormatTime(finalTime)}";
-            }
         }
 
-        // Convertir le temps en centisecondes pour l'API
-        int timeInCentiseconds = Mathf.RoundToInt(finalTime * 100f);
-
-        // Envoyer le score à l'API
-        StartCoroutine(ProcessHighscore(timeInCentiseconds));
+        // Mettre le jeu en pause
+        Time.timeScale = 0f;
     }
 
-    /// <summary>
-    /// Vérifie si c'est un highscore et affiche l'écran de saisie du nom si nécessaire
-    /// </summary>
-    IEnumerator ProcessHighscore(int time)
-    {
-        Debug.Log($"🔄 Vérification du highscore pour {time} centisecondes...");
-
-        // Récupérer les highscores depuis l'API
-        yield return HighscoreManager.FetchHighscores();
-
-        if (HighscoreManager.HasFetchedHighscores)
-        {
-            // Vérifier si c'est un highscore
-            if (HighscoreManager.IsHighscore(time))
-            {
-                Debug.Log("🏆 NOUVEAU HIGHSCORE!");
-
-                // Cacher le panel de victoire
-                if (victoryPanel != null)
-                {
-                    victoryPanel.SetActive(false);
-                }
-
-                // Afficher l'écran de saisie du nom
-                HighscoreManager.ShowHighscoreInput(time);
-            }
-            else
-            {
-                Debug.Log("Pas un highscore cette fois, mais bien joué!");
-            }
-        }
-        else
-        {
-            Debug.LogError("❌ Impossible de récupérer les highscores depuis l'API. Vérifiez que le backend est démarré!");
-        }
-    }
 }
