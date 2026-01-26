@@ -9,7 +9,7 @@ public class CameraDetectionZone : MonoBehaviour
     [Header("Detection Settings")]
     [SerializeField] private float tileSize = 0.5f; // Taille d'un carreau (32px = 0.5 unit si PPU=64)
     [SerializeField] private float detectionRadius = 0.75f; // Rayon du cercle (1.5 tiles de diamètre = 3x3)
-    [SerializeField] private float offsetDistance = 0.5f; // Distance de la caméra (1 tile d'écart)
+    
     [SerializeField] private string playerTag = "Player";
 
     [Header("Line of Sight")]
