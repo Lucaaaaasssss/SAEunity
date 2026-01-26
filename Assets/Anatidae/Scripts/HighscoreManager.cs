@@ -38,15 +38,14 @@ namespace Anatidae {
         //   - USE_PHP_API = true
         // ===========================================================
 
-        // ===== CONFIGURATION TEST LOCAL =====
-        // Pour test local dans l'éditeur Unity : USE_PROXY = false, VPS_BASE_URL = "http://localhost:8080"
-        // Pour WebGL sur anatidae : USE_PROXY = true, VPS_BASE_URL = "http://VOTRE_IP_VPS/api"
+        // ===== CONFIGURATION PRODUCTION =====
+        // API PHP déployée sur le VPS
 
-        private const bool USE_PROXY = false; // false pour test local, true pour WebGL
-        private const bool USE_PHP_API = true; // Utiliser l'API PHP du TD
-        private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy"; // Proxy sur anatidae-arcade
-        private const string VPS_BASE_URL = "http://localhost:8080"; // URL de l'API PHP (local ou VPS)
-        private const string PHP_SECURITY_KEY = "12345"; // Clé de sécurité pour l'API PHP
+        private const bool USE_PROXY = true; // true pour WebGL sur la borne
+        private const bool USE_PHP_API = true; // Utiliser l'API PHP
+        private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy"; // Proxy anatidae-arcade
+        private const string VPS_BASE_URL = "https://lucaslebecq.fr/api"; // API PHP sur le VPS
+        private const string PHP_SECURITY_KEY = "12345"; // Clé de sécurité pour l'écriture
 
         [Serializable]
         public struct HighscoreData
@@ -202,17 +201,13 @@ namespace Anatidae {
 
             if (USE_PROXY)
             {
-                // Utiliser le proxy POST
-                ProxyPostRequestHighscore proxyRequest = new ProxyPostRequestHighscore
-                {
-                    url = apiUrl,
-                    data = entry
-                };
+                // Utiliser le proxy POST (nouveau format: URL en query param, data en body)
+                string proxyUrl = LOCAL_PROXY_URL + "?url=" + UnityWebRequest.EscapeURL(apiUrl);
 
-                request = new UnityWebRequest(LOCAL_PROXY_URL)
+                request = new UnityWebRequest(proxyUrl)
                 {
                     method = UnityWebRequest.kHttpVerbPOST,
-                    uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(JsonUtility.ToJson(proxyRequest)))
+                    uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(JsonUtility.ToJson(entry)))
                     {
                         contentType = "application/json"
                     },
