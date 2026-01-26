@@ -188,8 +188,9 @@ namespace Anatidae {
             string apiUrl;
             if (USE_PHP_API)
             {
-                // API PHP du TD: ?parametre=ecriture&clefsecu=XXX
-                apiUrl = VPS_BASE_URL + "/?parametre=ecriture&clefsecu=" + PHP_SECURITY_KEY;
+                // API PHP du TD: utiliser GET avec valeur dans l'URL (compatible avec le proxy GitHub)
+                string valeur = "{\"name\":\"" + name + "\",\"score\":" + score + "}";
+                apiUrl = VPS_BASE_URL + "/?parametre=ecriture&clefsecu=" + PHP_SECURITY_KEY + "&valeur=" + UnityWebRequest.EscapeURL(valeur);
             }
             else
             {
@@ -199,9 +200,16 @@ namespace Anatidae {
 
             UnityWebRequest request;
 
-            if (USE_PROXY)
+            if (USE_PROXY && USE_PHP_API)
             {
-                // Utiliser le proxy POST (nouveau format: URL en query param, data en body)
+                // Utiliser le proxy GET pour l'API PHP (évite les problèmes de POST)
+                string proxyUrl = LOCAL_PROXY_URL + "?url=" + UnityWebRequest.EscapeURL(apiUrl);
+                request = UnityWebRequest.Get(proxyUrl);
+                Debug.Log("HighscoreManager: Using proxy GET to " + apiUrl);
+            }
+            else if (USE_PROXY)
+            {
+                // Utiliser le proxy POST pour les autres APIs
                 string proxyUrl = LOCAL_PROXY_URL + "?url=" + UnityWebRequest.EscapeURL(apiUrl);
 
                 request = new UnityWebRequest(proxyUrl)
