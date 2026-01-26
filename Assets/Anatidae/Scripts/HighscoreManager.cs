@@ -23,12 +23,30 @@ namespace Anatidae {
         // Changez cette variable pour définir quand est-ce qu'un score est considéré comme un highscore (top 10 par défaut)
         const int NumHighscores = 10;
 
-        // CONFIGURATION : Changez ces URLs selon votre environnement
-        // Pour utiliser le VPS : mettre USE_PROXY = true et renseigner VPS_BASE_URL
-        // Pour utiliser en local direct : mettre USE_PROXY = false
-        private const bool USE_PROXY = false;
-        private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy";
-        private const string VPS_BASE_URL = "http://localhost:3000"; // Serveur local anatidae-arcade
+        // ==================== CONFIGURATION ====================
+        // Pour utiliser le VPS via le proxy (mode production WebGL):
+        //   - USE_PROXY = true
+        //   - VPS_BASE_URL = l'URL de votre API sur le VPS (ex: "http://45.147.97.139/api")
+        //
+        // Pour utiliser anatidae-arcade en local (mode test):
+        //   - USE_PROXY = false
+        //   - VPS_BASE_URL = "http://localhost:3000"
+        //
+        // Pour utiliser l'API PHP simple du TD:
+        //   - USE_PROXY = true
+        //   - VPS_BASE_URL = "http://VOTRE_VPS_IP/api"
+        //   - USE_PHP_API = true
+        // ===========================================================
+
+        // ===== CONFIGURATION TEST LOCAL =====
+        // Pour test local dans l'éditeur Unity : USE_PROXY = false, VPS_BASE_URL = "http://localhost:8080"
+        // Pour WebGL sur anatidae : USE_PROXY = true, VPS_BASE_URL = "http://VOTRE_IP_VPS/api"
+
+        private const bool USE_PROXY = false; // false pour test local, true pour WebGL
+        private const bool USE_PHP_API = true; // Utiliser l'API PHP du TD
+        private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy"; // Proxy sur anatidae-arcade
+        private const string VPS_BASE_URL = "http://localhost:8080"; // URL de l'API PHP (local ou VPS)
+        private const string PHP_SECURITY_KEY = "12345"; // Clé de sécurité pour l'API PHP
 
         [Serializable]
         public struct HighscoreData
@@ -115,9 +133,20 @@ namespace Anatidae {
         public static IEnumerator FetchHighscores()
         {
             Debug.Log("HighscoreManager: Fetching highscores...");
-            string apiUrl = VPS_BASE_URL + "/api/?game=" + GameName;
-            string requestUrl;
 
+            string apiUrl;
+            if (USE_PHP_API)
+            {
+                // API PHP du TD: ?parametre=lecture
+                apiUrl = VPS_BASE_URL + "/?parametre=lecture";
+            }
+            else
+            {
+                // API Node.js/anatidae-arcade: /api/?game=GameName
+                apiUrl = VPS_BASE_URL + "/api/?game=" + GameName;
+            }
+
+            string requestUrl;
             if (USE_PROXY)
             {
                 // Utiliser le proxy pour contourner CORS
@@ -157,7 +186,18 @@ namespace Anatidae {
             HighscoreEntry entry = new HighscoreEntry { name = name, score = score };
             Debug.Log("HighscoreManager: Setting highscore: " + JsonUtility.ToJson(entry));
 
-            string apiUrl = VPS_BASE_URL + "/api/?game=" + GameName;
+            string apiUrl;
+            if (USE_PHP_API)
+            {
+                // API PHP du TD: ?parametre=ecriture&clefsecu=XXX
+                apiUrl = VPS_BASE_URL + "/?parametre=ecriture&clefsecu=" + PHP_SECURITY_KEY;
+            }
+            else
+            {
+                // API Node.js/anatidae-arcade: /api/?game=GameName
+                apiUrl = VPS_BASE_URL + "/api/?game=" + GameName;
+            }
+
             UnityWebRequest request;
 
             if (USE_PROXY)
