@@ -36,6 +36,15 @@ public class PressurePlate : MonoBehaviour
 
     private int playersOnPlate = 0; // Nombre de joueurs sur la plaque
     private bool isPressed = false;
+    private GameObject currentPlayer = null; // Le joueur actuellement sur la plaque
+
+    /// <summary>
+    /// Retourne le joueur actuellement sur la plaque (null si aucun)
+    /// </summary>
+    public GameObject GetCurrentPlayer()
+    {
+        return currentPlayer;
+    }
 
     void Start()
     {
@@ -70,6 +79,12 @@ public class PressurePlate : MonoBehaviour
         {
             playersOnPlate++;
 
+            // Stocker le premier joueur qui monte sur la plaque
+            if (currentPlayer == null)
+            {
+                currentPlayer = other.gameObject;
+            }
+
             if (!isPressed && playersOnPlate > 0)
             {
                 Press();
@@ -83,6 +98,12 @@ public class PressurePlate : MonoBehaviour
         if (other.CompareTag(playerTag) && !other.isTrigger)
         {
             playersOnPlate--;
+
+            // Réinitialiser le joueur actuel si c'est lui qui part
+            if (currentPlayer == other.gameObject)
+            {
+                currentPlayer = null;
+            }
 
             if (isPressed && playersOnPlate <= 0)
             {
