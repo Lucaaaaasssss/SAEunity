@@ -16063,9 +16063,9 @@ MonoBehaviour:
   waypoints:
   - {fileID: 1262958514}
   - {fileID: 1655683587}
-  moveSpeed: 30
+  moveSpeed: 1
   waypointReachDistance: 0.1
-  waitTimeAtWaypoint: 1
+  waitTimeAtWaypoint: 1.5
   animator: {fileID: 396221797}
   spriteRenderer: {fileID: 0}
   detectionZone: {fileID: 1446149988}
@@ -17508,7 +17508,7 @@ MonoBehaviour:
   - {fileID: 1954581983}
   moveSpeed: 1
   waypointReachDistance: 0.1
-  waitTimeAtWaypoint: 1.4
+  waitTimeAtWaypoint: 1.5
   animator: {fileID: 431317248}
   spriteRenderer: {fileID: 0}
   detectionZone: {fileID: 1459241193}
