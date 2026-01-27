@@ -69,6 +69,12 @@ public class CameraFollowPlayer : MonoBehaviour
 
     void LateUpdate()
     {
+        // Ne pas suivre en mode 2 joueurs (le SplitScreenManager s'en charge)
+        if (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo())
+        {
+            return;
+        }
+
         // Mettre à jour la cible si on suit le personnage actif
         if (followActiveCharacter && characterSwitcher != null)
         {

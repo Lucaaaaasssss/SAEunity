@@ -11,6 +11,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private string horizontalAxis = "P1_Horizontal";
     [SerializeField] private string verticalAxis = "P1_Vertical";
 
+    [Header("Player ID (for 2P mode)")]
+    [SerializeField] private int playerID = 1; // 1 = Player 1, 2 = Player 2
+
     [Header("Footstep Sounds")]
     [Tooltip("AudioSource pour les sons de pas (auto-créé si vide)")]
     [SerializeField] private AudioSource footstepAudioSource;
@@ -169,9 +172,24 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Récupérer les inputs (arcade ou standard)
-        float horizontalInput = useArcadeControls ? Input.GetAxis(horizontalAxis) : Input.GetAxis("Horizontal");
-        float verticalInput = useArcadeControls ? Input.GetAxis(verticalAxis) : Input.GetAxis("Vertical");
+        // Récupérer les inputs
+        float horizontalInput = 0f;
+        float verticalInput = 0f;
+
+        // Déterminer quel axe utiliser selon le mode et le playerID
+        string hAxis = horizontalAxis;
+        string vAxis = verticalAxis;
+
+        // En mode Duo, forcer P2 pour le joueur 2
+        if (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo() && playerID == 2)
+        {
+            hAxis = "P2_Horizontal";
+            vAxis = "P2_Vertical";
+        }
+
+        // Récupérer les inputs de la même manière qu'en solo
+        horizontalInput = useArcadeControls ? Input.GetAxis(hAxis) : Input.GetAxis("Horizontal");
+        verticalInput = useArcadeControls ? Input.GetAxis(vAxis) : Input.GetAxis("Vertical");
 
         // Démarrer le timer au premier mouvement
         if (!timerStarted && (horizontalInput != 0 || verticalInput != 0))

@@ -108,7 +108,7 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    void ShowMainMenu()
+    public void ShowMainMenu()
     {
         currentState = MenuState.MainMenu;
         SetPanelActive(mainMenuPanel, true);
@@ -118,7 +118,7 @@ public class MainMenuController : MonoBehaviour
         Debug.Log("Menu: Main Menu");
     }
 
-    void ShowModeSelect()
+    public void ShowModeSelect()
     {
         currentState = MenuState.ModeSelect;
         SetPanelActive(mainMenuPanel, false);
@@ -127,7 +127,7 @@ public class MainMenuController : MonoBehaviour
         Debug.Log("Menu: Mode Select");
     }
 
-    void ShowHighscores()
+    public void ShowHighscores()
     {
         currentState = MenuState.Highscores;
         SetPanelActive(mainMenuPanel, false);
@@ -150,5 +150,36 @@ public class MainMenuController : MonoBehaviour
         GameModeManager.Instance.SetMode(mode);
         Debug.Log($"Starting game in {mode} mode");
         SceneManager.LoadScene(gameSceneName);
+    }
+
+    // Méthodes publiques pour les boutons UI
+    public void OnPlayButtonClick()
+    {
+        ShowModeSelect();
+    }
+
+    public void OnSoloButtonClick()
+    {
+        StartGame(GameMode.Solo);
+    }
+
+    public void OnDuoButtonClick()
+    {
+        StartGame(GameMode.Duo);
+    }
+
+    public void OnHighscoresButtonClick()
+    {
+        ShowHighscores();
+    }
+
+    public void OnBackButtonClick()
+    {
+        ShowMainMenu();
+    }
+
+    public void OnQuitButtonClick()
+    {
+        QuitGame();
     }
 }

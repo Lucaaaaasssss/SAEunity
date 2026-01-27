@@ -49,15 +49,40 @@ public class CharacterSwitcher : MonoBehaviour
                 character2.transform.position = character2StartPosition;
         }
 
-        // Commencer avec le premier personnage actif
-        currentCharacter = character1;
-        UpdateCharacterStates();
+        // En mode 2 joueurs, activer les deux personnages
+        if (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo())
+        {
+            // Les deux personnages sont actifs en même temps
+            if (character1Movement != null)
+                character1Movement.SetControlEnabled(true);
+            if (character2Movement != null)
+                character2Movement.SetControlEnabled(true);
+
+            // Remettre les couleurs normales (pas de highlight)
+            if (highlightActiveCharacter)
+            {
+                UpdateVisualFeedback(character1, true);
+                UpdateVisualFeedback(character2, true);
+            }
+        }
+        // En mode solo, commencer avec le premier personnage actif
+        else
+        {
+            currentCharacter = character1;
+            UpdateCharacterStates();
+        }
     }
 
     void Update()
     {
         // Ne pas traiter les inputs si l'écran de saisie du pseudo est affiché
         if (Anatidae.HighscoreManager.IsHighscoreInputScreenShown)
+        {
+            return;
+        }
+
+        // Ne pas permettre le switch en mode 2 joueurs
+        if (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo())
         {
             return;
         }

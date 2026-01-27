@@ -15394,8 +15394,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -50}
-  m_SizeDelta: {x: 130, y: 80}
+  m_AnchoredPosition: {x: -813.8901, y: -60.494995}
+  m_SizeDelta: {x: 205.98, y: 126.757}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &382290184
 MonoBehaviour:
@@ -20257,10 +20257,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -30358,6 +30358,7 @@ MonoBehaviour:
   useArcadeControls: 1
   horizontalAxis: P1_Horizontal
   verticalAxis: P1_Vertical
+  playerID: 2
   footstepAudioSource: {fileID: 0}
   footstepSounds: []
   footstepInterval: 0.4
@@ -30380,7 +30381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2658013339a4df64fb362d609a02168d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  freezeRotation: 1
+  freezeRotation: 0
   playerTags:
   - Player
 --- !u!114 &774874954
@@ -42656,7 +42657,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -60}
+  m_AnchoredPosition: {x: -812.7, y: -64.1}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1159064172
@@ -42726,13 +42727,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -58898,6 +58899,7 @@ MonoBehaviour:
   useArcadeControls: 1
   horizontalAxis: P1_Horizontal
   verticalAxis: P1_Vertical
+  playerID: 1
   footstepAudioSource: {fileID: 0}
   footstepSounds:
   - {fileID: 8300000, guid: 2c87eca5e082abf4b9f7fdd9d0639f69, type: 3}
@@ -61181,6 +61183,59 @@ MonoBehaviour:
   showGridGizmo: 1
   waypointColor: {r: 0, g: 1, b: 1, a: 1}
   gizmoSize: 0.3
+--- !u!1 &1641778358
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1641778360}
+  - component: {fileID: 1641778359}
+  m_Layer: 0
+  m_Name: SplitScreenManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1641778359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641778358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81a4ac8cdc583444cbba4bd2210be838, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player1: {fileID: 1559904414}
+  player2: {fileID: 774874948}
+  mainCamera: {fileID: 519420031}
+  cameraSize: 8
+  cameraOffset: {x: 0, y: 0, z: -10}
+  followY: 1
+  followX: 1
+  showBorders: 1
+  borderThickness: 5
+--- !u!4 &1641778360
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641778358}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -7.5, y: -16.51, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1644763281
 GameObject:
   m_ObjectHideFlags: 0
@@ -80401,9 +80456,11 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 519420032}
+  - {fileID: 1559904414}
   - {fileID: 774874948}
   - {fileID: 2043731609}
   - {fileID: 639164109}
+  - {fileID: 1641778360}
   - {fileID: 1028739697}
   - {fileID: 507428561}
   - {fileID: 59817423}
@@ -80425,7 +80482,6 @@ SceneRoots:
   - {fileID: 1363757518}
   - {fileID: 626725055}
   - {fileID: 1528002927}
-  - {fileID: 1559904414}
   - {fileID: 145256321}
   - {fileID: 1083432943}
   - {fileID: 1524811081}

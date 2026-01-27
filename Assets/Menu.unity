@@ -516,6 +516,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AnatidaeInterface
       objectReference: {fileID: 0}
+    - target: {fileID: 5887366077124286685, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 657104645881614574, guid: af51f0972aec32548a48f78911e8963c, type: 3}

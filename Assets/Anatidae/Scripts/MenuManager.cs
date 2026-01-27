@@ -34,14 +34,15 @@ public class MenuManager : MonoBehaviour
 
     void Update()
     {
-        if (heldQuitTimer >= HeldQuitTime || afkTimer >= AfkTime) {
-            BackToMenu();
-        }
+        // DÉSACTIVÉ: les appels à BackToMenu() qui crashent sur Windows
+        // if (heldQuitTimer >= HeldQuitTime || afkTimer >= AfkTime) {
+        //     BackToMenu();
+        // }
 
-        // Échap pour quitter (test clavier)
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            BackToMenu();
-        }
+        // DÉSACTIVÉ: Échap pour quitter (crash sur Windows)
+        // if (Input.GetKeyDown(KeyCode.Escape)) {
+        //     BackToMenu();
+        // }
 
         if (Input.GetButton("Coin"))
             heldQuitTimer += Time.deltaTime;
@@ -55,8 +56,14 @@ public class MenuManager : MonoBehaviour
             afkTimer += Time.deltaTime;
 
         if (heldQuitTimer != 0 || afkTimer - AfkTime + 6f > 0f) {
-            quitText.gameObject.SetActive(true);
-            quitText.text = MenuMessage + new string('.', (int)Mathf.Min(Mathf.Max(heldQuitTimer * 3f, afkTimer - AfkTime + 10f * 0.4f), 3));
-        } else quitText.gameObject.SetActive(false);
+            if (quitText != null) {
+                quitText.gameObject.SetActive(true);
+                quitText.text = MenuMessage + new string('.', (int)Mathf.Min(Mathf.Max(heldQuitTimer * 3f, afkTimer - AfkTime + 10f * 0.4f), 3));
+            }
+        } else {
+            if (quitText != null) {
+                quitText.gameObject.SetActive(false);
+            }
+        }
     }
 }

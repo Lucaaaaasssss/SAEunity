@@ -9,10 +9,13 @@ using TMPro;
 public class AutoTimerSetup : MonoBehaviour
 {
     [Header("Configuration")]
-    [SerializeField] private Vector2 position = new Vector2(30f, -30f); // Position depuis le coin haut-gauche
+    [SerializeField] private Vector2 soloPosition = new Vector2(30f, -30f); // Position en mode Solo
+    [SerializeField] private Vector2 duoPosition = new Vector2(280f, -30f); // Position en mode Duo (décalé à droite du cadre rouge)
     [SerializeField] private float fontSize = 40f;
     [SerializeField] private Color textColor = Color.white;
     [SerializeField] private string prefix = "TIME: ";
+
+    private Vector2 currentPosition => (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo()) ? duoPosition : soloPosition;
 
     void Awake()
     {
@@ -124,7 +127,7 @@ public class AutoTimerSetup : MonoBehaviour
         rectTransform.anchorMin = new Vector2(0, 1); // Coin haut-gauche
         rectTransform.anchorMax = new Vector2(0, 1); // Coin haut-gauche
         rectTransform.pivot = new Vector2(0, 1); // Pivot haut-gauche
-        rectTransform.anchoredPosition = position;
+        rectTransform.anchoredPosition = currentPosition;
         rectTransform.sizeDelta = new Vector2(400, 80);
 
         // Configuration du texte
@@ -142,12 +145,12 @@ public class AutoTimerSetup : MonoBehaviour
             outline.effectDistance = new Vector2(2, -2);
         }
 
-        Debug.Log($"✅ Timer configuré : Position={position}, FontSize={fontSize}");
+        Debug.Log($"✅ Timer configuré : Position={currentPosition}, FontSize={fontSize}");
     }
 
     void LateUpdate()
     {
-        // Forcer la position à chaque frame pour être sûr qu'elle reste en haut à gauche
+        // Forcer la position à chaque frame (ajustée selon le mode Solo/Duo)
         TimerDisplay timer = FindObjectOfType<TimerDisplay>();
         if (timer != null && timer.TryGetComponent<TextMeshProUGUI>(out var text))
         {
@@ -161,9 +164,9 @@ public class AutoTimerSetup : MonoBehaviour
                 rect.pivot = new Vector2(0, 1);
             }
 
-            if (rect.anchoredPosition != position)
+            if (rect.anchoredPosition != currentPosition)
             {
-                rect.anchoredPosition = position;
+                rect.anchoredPosition = currentPosition;
             }
         }
     }
@@ -178,7 +181,7 @@ public class AutoTimerSetup : MonoBehaviour
             {
                 text.fontSize = fontSize;
                 text.color = textColor;
-                text.GetComponent<RectTransform>().anchoredPosition = position;
+                text.GetComponent<RectTransform>().anchoredPosition = currentPosition;
             }
         }
     }
