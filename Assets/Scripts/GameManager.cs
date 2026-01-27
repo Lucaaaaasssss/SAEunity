@@ -60,6 +60,24 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // Augmenter le sorting order du Canvas pour qu'il passe devant les bordures du split screen
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            // Chercher le Canvas dans les parents des panels
+            if (gameOverPanel != null)
+            {
+                canvas = gameOverPanel.GetComponentInParent<Canvas>();
+            }
+        }
+
+        if (canvas != null)
+        {
+            // Mettre un sorting order très élevé pour passer devant OnGUI
+            canvas.sortingOrder = 1000;
+            Debug.Log($"Canvas sorting order set to {canvas.sortingOrder} pour passer devant les bordures split screen");
+        }
+
         // Cacher les panels au départ
         if (gameOverPanel != null)
         {

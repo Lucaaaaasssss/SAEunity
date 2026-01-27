@@ -274,10 +274,48 @@ public class SplitScreenManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// V�rifie si les bordures doivent �tre cach�es (quand des panels UI sont actifs)
+    /// </summary>
+    bool ShouldHideBorders()
+    {
+        // V�rifier si le GameManager a des panels actifs
+        if (GameManager.Instance != null && GameManager.Instance.IsGameOver())
+        {
+            return true;
+        }
+
+        // Chercher tous les Canvas actifs avec un sorting order �lev�
+        Canvas[] allCanvas = FindObjectsOfType<Canvas>();
+        foreach (Canvas canvas in allCanvas)
+        {
+            // Si un Canvas avec sorting order > 500 est actif, cacher les bordures
+            if (canvas.sortingOrder > 500 && canvas.gameObject.activeInHierarchy)
+            {
+                // V�rifier s'il a des enfants actifs (panels)
+                foreach (Transform child in canvas.transform)
+                {
+                    if (child.gameObject.activeInHierarchy)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     // Dessiner les cadres rouges autour des cam�ras
     void OnGUI()
     {
         if (!splitScreenActive || !showBorders || redTexture == null) return;
+
+        // Ne pas dessiner les bordures si des panels UI sont actifs
+        if (ShouldHideBorders())
+        {
+            return;
+        }
 
         // Cadre autour de la cam�ra gauche (50% de l'�cran)
         float leftWidth = Screen.width * 0.5f;
