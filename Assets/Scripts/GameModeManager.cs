@@ -12,6 +12,9 @@ public class GameModeManager : MonoBehaviour
 
     public GameMode CurrentMode { get; private set; } = GameMode.Solo;
 
+    // Indique si on doit afficher l'écran des commandes (true = première partie depuis le menu)
+    public bool ShouldShowControls { get; set; } = false;
+
     void Awake()
     {
         if (Instance == null)

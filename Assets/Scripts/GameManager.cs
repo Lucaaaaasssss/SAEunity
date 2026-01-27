@@ -19,6 +19,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject victoryPanel; // Panel UI pour la victoire
     [SerializeField] private GameObject scoreSubmittedPanel; // Panel affiché après envoi du score
 
+    [Header("Controls Screen")]
+    [SerializeField] private GameObject controlsPanelSolo; // Panel des commandes pour le mode Solo
+    [SerializeField] private GameObject controlsPanelDuo; // Panel des commandes pour le mode Duo
+    [SerializeField] private TextMeshProUGUI countdownText; // Texte du décompte (3, 2, 1)
+
     [Header("Game Over Actions")]
     [SerializeField] private KeyCode restartKey = KeyCode.R;
     [SerializeField] private KeyCode quitKey = KeyCode.Escape;
@@ -28,6 +33,7 @@ public class GameManager : MonoBehaviour
     private int finalTimeInCentiseconds = 0; // Stocke le temps pour l'enregistrement
     private bool wasShowingHighscoreInput = false; // Pour détecter quand l'écran de saisie se ferme
     private bool scoreWasSubmitted = false; // Pour savoir si le score a été envoyé
+    private bool isShowingControls = false; // Pour savoir si l'écran des commandes est affiché
 
     // Configuration API pour compter les parties
     private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy";
@@ -74,16 +80,91 @@ public class GameManager : MonoBehaviour
             retourImage.gameObject.SetActive(false);
         }
 
-        // Charger et appliquer les paramètres du jeu
-        StartCoroutine(InitializeGameSettings());
+        // Cacher les panels des commandes au départ
+        if (controlsPanelSolo != null)
+        {
+            controlsPanelSolo.SetActive(false);
+        }
+        if (controlsPanelDuo != null)
+        {
+            controlsPanelDuo.SetActive(false);
+        }
 
-        // Incrémenter le compteur de parties jouées
-        StartCoroutine(EnregistrerNouvellePartie());
+        // Vérifier si on doit afficher l'écran des commandes (première partie depuis le menu)
+        if (GameModeManager.Instance != null && GameModeManager.Instance.ShouldShowControls)
+        {
+            StartCoroutine(ShowControlsScreen());
+        }
+        else
+        {
+            // Démarrer normalement
+            StartCoroutine(InitializeGameSettings());
+            StartCoroutine(EnregistrerNouvellePartie());
+        }
     }
 
     IEnumerator InitializeGameSettings()
     {
         yield return PoliceSpeedManager.FetchAndApplyPoliceSpeed();
+    }
+
+    /// <summary>
+    /// Affiche l'écran des commandes avec un décompte avant de démarrer le jeu
+    /// </summary>
+    IEnumerator ShowControlsScreen()
+    {
+        isShowingControls = true;
+
+        // Marquer qu'on a affiché les commandes (ne plus les afficher au prochain replay)
+        GameModeManager.Instance.ShouldShowControls = false;
+
+        // Mettre le jeu en pause pendant l'affichage des commandes
+        Time.timeScale = 0f;
+
+        // Déterminer quel panel afficher selon le mode
+        GameObject panelToShow = GameModeManager.Instance.IsSolo() ? controlsPanelSolo : controlsPanelDuo;
+
+        // Afficher le panel des commandes approprié
+        if (panelToShow != null)
+        {
+            panelToShow.SetActive(true);
+        }
+
+        // Décompte 3, 2, 1
+        for (int i = 3; i >= 1; i--)
+        {
+            if (countdownText != null)
+            {
+                countdownText.text = i.ToString();
+            }
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        // Cacher le panel des commandes
+        if (panelToShow != null)
+        {
+            panelToShow.SetActive(false);
+        }
+
+        // Cacher le texte du décompte
+        if (countdownText != null)
+        {
+            countdownText.text = "";
+        }
+
+        // Réinitialiser le timer à 0 avant de démarrer le jeu
+        if (SpeedrunTimer.Instance != null)
+        {
+            SpeedrunTimer.Instance.StopTimer();
+        }
+
+        // Remettre le jeu en marche
+        Time.timeScale = 1f;
+        isShowingControls = false;
+
+        // Initialiser le jeu normalement
+        StartCoroutine(InitializeGameSettings());
+        StartCoroutine(EnregistrerNouvellePartie());
     }
 
     void Update()

@@ -148,6 +148,7 @@ public class MainMenuController : MonoBehaviour
     void StartGame(GameMode mode)
     {
         GameModeManager.Instance.SetMode(mode);
+        GameModeManager.Instance.ShouldShowControls = true; // Afficher l'écran des commandes
         Debug.Log($"Starting game in {mode} mode");
         SceneManager.LoadScene(gameSceneName);
     }

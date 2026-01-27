@@ -131,13 +131,24 @@ namespace Anatidae {
 
         public static IEnumerator FetchHighscores()
         {
-            Debug.Log("HighscoreManager: Fetching highscores...");
+            // Utiliser le mode de jeu actuel
+            string gameMode = "solo";
+            if (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo())
+            {
+                gameMode = "duo";
+            }
+            yield return FetchHighscores(gameMode);
+        }
+
+        public static IEnumerator FetchHighscores(string mode)
+        {
+            Debug.Log("HighscoreManager: Fetching highscores for mode: " + mode);
 
             string apiUrl;
             if (USE_PHP_API)
             {
-                // API PHP du TD: ?parametre=lecture
-                apiUrl = VPS_BASE_URL + "/?parametre=lecture";
+                // API PHP du TD: ?parametre=lecture&mode=solo|duo
+                apiUrl = VPS_BASE_URL + "/?parametre=lecture&mode=" + mode;
             }
             else
             {
@@ -185,12 +196,20 @@ namespace Anatidae {
             HighscoreEntry entry = new HighscoreEntry { name = name, score = score };
             Debug.Log("HighscoreManager: Setting highscore: " + JsonUtility.ToJson(entry));
 
+            // Déterminer le mode de jeu (solo ou duo)
+            string gameMode = "solo";
+            if (GameModeManager.Instance != null && GameModeManager.Instance.IsDuo())
+            {
+                gameMode = "duo";
+            }
+            Debug.Log("HighscoreManager: Game mode is " + gameMode);
+
             string apiUrl;
             if (USE_PHP_API)
             {
                 // API PHP du TD: utiliser GET avec valeur dans l'URL (compatible avec le proxy GitHub)
                 string valeur = "{\"name\":\"" + name + "\",\"score\":" + score + "}";
-                apiUrl = VPS_BASE_URL + "/?parametre=ecriture&clefsecu=" + PHP_SECURITY_KEY + "&valeur=" + UnityWebRequest.EscapeURL(valeur);
+                apiUrl = VPS_BASE_URL + "/?parametre=ecriture&clefsecu=" + PHP_SECURITY_KEY + "&mode=" + gameMode + "&valeur=" + UnityWebRequest.EscapeURL(valeur);
             }
             else
             {

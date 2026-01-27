@@ -3,57 +3,59 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Script pour le menu principal
-/// Permet de sélectionner le mode de jeu (1 joueur ou 2 joueurs) avant de lancer une partie
+/// Permet de sï¿½lectionner le mode de jeu (1 joueur ou 2 joueurs) avant de lancer une partie
 /// </summary>
 public class MenuModeSelector : MonoBehaviour
 {
     [Header("Scene Settings")]
-    [SerializeField] private string gameSceneName = "MainScene"; // Nom de la scène de jeu
+    [SerializeField] private string gameSceneName = "MainScene"; // Nom de la scï¿½ne de jeu
 
     /// <summary>
     /// Lance le jeu en mode 1 joueur (Solo)
-    /// À attacher à un bouton "1 Joueur" dans le menu
+    /// ï¿½ attacher ï¿½ un bouton "1 Joueur" dans le menu
     /// </summary>
     public void StartSinglePlayer()
     {
-        Debug.Log("<® Démarrage du mode 1 joueur");
+        Debug.Log("<ï¿½ Dï¿½marrage du mode 1 joueur");
 
-        // Créer le GameModeManager s'il n'existe pas
+        // Crï¿½er le GameModeManager s'il n'existe pas
         CreateGameModeManager();
 
-        // Définir le mode Solo
+        // Dï¿½finir le mode Solo
         if (GameModeManager.Instance != null)
         {
             GameModeManager.Instance.SetMode(GameMode.Solo);
+            GameModeManager.Instance.ShouldShowControls = true; // Afficher l'ï¿½cran des commandes
         }
 
-        // Charger la scène de jeu
+        // Charger la scï¿½ne de jeu
         LoadGameScene();
     }
 
     /// <summary>
     /// Lance le jeu en mode 2 joueurs (Duo)
-    /// À attacher à un bouton "2 Joueurs" dans le menu
+    /// ï¿½ attacher ï¿½ un bouton "2 Joueurs" dans le menu
     /// </summary>
     public void StartTwoPlayers()
     {
-        Debug.Log("<® Démarrage du mode 2 joueurs");
+        Debug.Log("<ï¿½ Dï¿½marrage du mode 2 joueurs");
 
-        // Créer le GameModeManager s'il n'existe pas
+        // Crï¿½er le GameModeManager s'il n'existe pas
         CreateGameModeManager();
 
-        // Définir le mode Duo
+        // Dï¿½finir le mode Duo
         if (GameModeManager.Instance != null)
         {
             GameModeManager.Instance.SetMode(GameMode.Duo);
+            GameModeManager.Instance.ShouldShowControls = true; // Afficher l'ï¿½cran des commandes
         }
 
-        // Charger la scène de jeu
+        // Charger la scï¿½ne de jeu
         LoadGameScene();
     }
 
     /// <summary>
-    /// Crée le GameModeManager s'il n'existe pas déjà
+    /// Crï¿½e le GameModeManager s'il n'existe pas dï¿½jï¿½
     /// </summary>
     void CreateGameModeManager()
     {
@@ -61,12 +63,12 @@ public class MenuModeSelector : MonoBehaviour
         {
             GameObject gmm = new GameObject("GameModeManager");
             gmm.AddComponent<GameModeManager>();
-            Debug.Log(" GameModeManager créé");
+            Debug.Log(" GameModeManager crï¿½ï¿½");
         }
     }
 
     /// <summary>
-    /// Charge la scène de jeu
+    /// Charge la scï¿½ne de jeu
     /// </summary>
     void LoadGameScene()
     {
@@ -76,13 +78,13 @@ public class MenuModeSelector : MonoBehaviour
         }
         else
         {
-            Debug.LogError("L Nom de scène de jeu non défini dans MenuModeSelector!");
+            Debug.LogError("L Nom de scï¿½ne de jeu non dï¿½fini dans MenuModeSelector!");
         }
     }
 
     /// <summary>
     /// Quitte le jeu
-    /// À attacher à un bouton "Quitter"
+    /// ï¿½ attacher ï¿½ un bouton "Quitter"
     /// </summary>
     public void QuitGame()
     {
