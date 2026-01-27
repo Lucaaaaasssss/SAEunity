@@ -14,7 +14,16 @@ namespace Anatidae {
         public void SetData(HighscoreManager.HighscoreEntry entry)
         {
             nameText.text = entry.name;
-            scoreText.text = entry.score.ToString();
+            // Convertir le score (en centièmes de seconde) en format temps MM:SS.CC
+            scoreText.text = FormatTime(entry.score);
+        }
+
+        string FormatTime(int centiseconds)
+        {
+            int minutes = centiseconds / 6000;
+            int seconds = (centiseconds / 100) % 60;
+            int centis = centiseconds % 100;
+            return string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, centis);
         }
 
         public void SetScale(float scale)

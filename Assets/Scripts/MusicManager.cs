@@ -14,6 +14,7 @@ public class MusicManager : MonoBehaviour
     [SerializeField] [Range(0f, 1f)] private float volume = 0.5f;
 
     private AudioSource audioSource;
+    private bool isPaused = false;
 
     void Awake()
     {
@@ -94,7 +95,8 @@ public class MusicManager : MonoBehaviour
     {
         while (true)
         {
-            if (audioSource != null && musicClip != null)
+            // Ne pas relancer si la musique est en pause
+            if (!isPaused && audioSource != null && musicClip != null)
             {
                 if (!audioSource.isPlaying)
                 {
@@ -131,6 +133,7 @@ public class MusicManager : MonoBehaviour
     /// </summary>
     public void Pause()
     {
+        isPaused = true;
         if (audioSource != null)
         {
             audioSource.Pause();
@@ -142,6 +145,7 @@ public class MusicManager : MonoBehaviour
     /// </summary>
     public void Resume()
     {
+        isPaused = false;
         if (audioSource != null)
         {
             audioSource.UnPause();

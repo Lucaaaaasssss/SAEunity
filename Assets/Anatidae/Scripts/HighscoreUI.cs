@@ -5,6 +5,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 namespace Anatidae {
     public class HighscoreUI : MonoBehaviour
@@ -15,6 +16,7 @@ namespace Anatidae {
         [SerializeField][Tooltip("Nombre de champs à afficher")] int numHighscoreEntries = 10;
         [SerializeField][Tooltip("Rendre le premier score plus gros")] bool makeFirstBigger = true;
         [SerializeField][Tooltip("Défiler les scores de haut en bas automatiquement")] bool autoscroll = false;
+        [SerializeField][Tooltip("Texte pour afficher le titre du classement")] TMP_Text titleText;
 
         public void OnEnable()
         {
@@ -24,6 +26,14 @@ namespace Anatidae {
         IEnumerator Init()
         {
             Debug.Log("Récupération des highscores...", this);
+
+            // Mettre à jour le titre selon le mode
+            if (titleText != null)
+            {
+                bool isDuo = GameModeManager.Instance != null && GameModeManager.Instance.IsDuo();
+                titleText.text = isDuo ? "CLASSEMENT DUO" : "CLASSEMENT SOLO";
+            }
+
             yield return HighscoreManager.FetchHighscores();
             UpdateHighscoreEntries();
         }

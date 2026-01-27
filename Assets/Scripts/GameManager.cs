@@ -14,10 +14,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image retourImage; // Image RETOUR.PNG
     [SerializeField] private Vector2 retourImageSize = new Vector2(200f, 200f); // Taille de l'image RETOUR
     [SerializeField] private bool pauseGameOnGameOver = true;
+    [SerializeField] private AudioClip detectionSound; // Son quand on se fait repérer
 
     [Header("Victory Settings")]
     [SerializeField] private GameObject victoryPanel; // Panel UI pour la victoire
     [SerializeField] private GameObject scoreSubmittedPanel; // Panel affiché après envoi du score
+    [SerializeField] private AudioClip victorySound; // Son de victoire
 
     [Header("Controls Screen")]
     [SerializeField] private GameObject controlsPanelSolo; // Panel des commandes pour le mode Solo
@@ -313,6 +315,12 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"Game Over: {reason}");
 
+        // Jouer le son de détection
+        if (countdownAudioSource != null && detectionSound != null)
+        {
+            countdownAudioSource.PlayOneShot(detectionSound);
+        }
+
         // Arrêter le timer si présent
         if (SpeedrunTimer.Instance != null)
         {
@@ -419,6 +427,12 @@ public class GameManager : MonoBehaviour
         hasWon = true;
 
         Debug.Log("🎉 VICTOIRE!");
+
+        // Jouer le son de victoire
+        if (countdownAudioSource != null && victorySound != null)
+        {
+            countdownAudioSource.PlayOneShot(victorySound);
+        }
 
         // Arrêter le timer et récupérer le temps final
         float finalTime = 0f;

@@ -25372,6 +25372,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 712571038441977851, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: titleText
+      value: 
+      objectReference: {fileID: 974406106}
+    - target: {fileID: 712571038441977851, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: duoEntryContainer
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 712571038441977851, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: soloEntryContainer
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1154651545723339869, guid: af51f0972aec32548a48f78911e8963c, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -25464,6 +25476,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2426565322711466249, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426565322711466249, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 800
+      objectReference: {fileID: 0}
+    - target: {fileID: 2426565322711466249, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.00030517578
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635399149020747158, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635399149020747158, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 800
+      objectReference: {fileID: 0}
     - target: {fileID: 2991524362918168851, guid: af51f0972aec32548a48f78911e8963c, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -25472,13 +25504,33 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3713262947979989067, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: 3713262947979989067, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 800
+      objectReference: {fileID: 0}
     - target: {fileID: 5887366077124286685, guid: af51f0972aec32548a48f78911e8963c, type: 3}
       propertyPath: m_Name
       value: AnatidaeInterface
       objectReference: {fileID: 0}
+    - target: {fileID: 6225878038351345027, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 600
+      objectReference: {fileID: 0}
+    - target: {fileID: 6225878038351345027, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 800
+      objectReference: {fileID: 0}
     - target: {fileID: 6283545301196207499, guid: af51f0972aec32548a48f78911e8963c, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6993319419870327522, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 800
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -30906,7 +30958,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 25d5582a7f93a4d93b11e77485b552c3, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -36864,6 +36916,17 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &974406106 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 614154388022978809, guid: af51f0972aec32548a48f78911e8963c, type: 3}
+  m_PrefabInstance: {fileID: 639164109}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &979325734
 GameObject:
   m_ObjectHideFlags: 0
@@ -38847,7 +38910,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 7a9d93f41fe54482fb30f540f665337b, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -70356,8 +70419,10 @@ MonoBehaviour:
   retourImage: {fileID: 1906227043}
   retourImageSize: {x: 1500, y: 1500}
   pauseGameOnGameOver: 1
+  detectionSound: {fileID: 8300000, guid: f1a9b34fcfa3e4d879ebc750b115e360, type: 3}
   victoryPanel: {fileID: 434198301}
   scoreSubmittedPanel: {fileID: 1269637951}
+  victorySound: {fileID: 8300000, guid: 306684b7a60f24875901b3fd4163b00d, type: 3}
   controlsPanelSolo: {fileID: 1042402962}
   controlsPanelDuo: {fileID: 783060228}
   countdownTextSolo: {fileID: 4687818}
@@ -70366,7 +70431,6 @@ MonoBehaviour:
   countdownGo: {fileID: 8300000, guid: e7bf14d007bad4985b7cf210b01b573a, type: 3}
   countdownAudioSource: {fileID: 1899253004}
   quitKey: 27
-  clickSound: {fileID: 8300000, guid: 58701280ca97f4f55a29b392b8c061fd, type: 3}
 --- !u!4 &1899253003
 Transform:
   m_ObjectHideFlags: 0
