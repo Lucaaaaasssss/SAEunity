@@ -22,10 +22,13 @@ public class GameManager : MonoBehaviour
     [Header("Controls Screen")]
     [SerializeField] private GameObject controlsPanelSolo; // Panel des commandes pour le mode Solo
     [SerializeField] private GameObject controlsPanelDuo; // Panel des commandes pour le mode Duo
-    [SerializeField] private TextMeshProUGUI countdownText; // Texte du décompte (3, 2, 1)
+    [SerializeField] private TextMeshProUGUI countdownTextSolo; // Texte du décompte pour le mode Solo
+    [SerializeField] private TextMeshProUGUI countdownTextDuo; // Texte du décompte pour le mode Duo
+    [SerializeField] private AudioClip countdownBeep; // Son pour chaque seconde (3, 2, 1)
+    [SerializeField] private AudioClip countdownGo; // Son pour le départ (optionnel)
+    [SerializeField] private AudioSource countdownAudioSource; // AudioSource pour jouer les sons
 
     [Header("Game Over Actions")]
-    [SerializeField] private KeyCode restartKey = KeyCode.R;
     [SerializeField] private KeyCode quitKey = KeyCode.Escape;
 
     private bool gameIsOver = false;
@@ -121,8 +124,10 @@ public class GameManager : MonoBehaviour
         // Mettre le jeu en pause pendant l'affichage des commandes
         Time.timeScale = 0f;
 
-        // Déterminer quel panel afficher selon le mode
-        GameObject panelToShow = GameModeManager.Instance.IsSolo() ? controlsPanelSolo : controlsPanelDuo;
+        // Déterminer quel panel et texte afficher selon le mode
+        bool isSolo = GameModeManager.Instance.IsSolo();
+        GameObject panelToShow = isSolo ? controlsPanelSolo : controlsPanelDuo;
+        TextMeshProUGUI countdownText = isSolo ? countdownTextSolo : countdownTextDuo;
 
         // Afficher le panel des commandes approprié
         if (panelToShow != null)
@@ -137,7 +142,25 @@ public class GameManager : MonoBehaviour
             {
                 countdownText.text = i.ToString();
             }
+            // Jouer le son du bip
+            if (countdownAudioSource != null && countdownBeep != null)
+            {
+                countdownAudioSource.clip = countdownBeep;
+                countdownAudioSource.Play();
+            }
             yield return new WaitForSecondsRealtime(1f);
+        }
+
+        // Couper le son du bip
+        if (countdownAudioSource != null)
+        {
+            countdownAudioSource.Stop();
+        }
+
+        // Jouer le son de départ (GO)
+        if (countdownAudioSource != null && countdownGo != null)
+        {
+            countdownAudioSource.PlayOneShot(countdownGo);
         }
 
         // Cacher le panel des commandes
@@ -191,12 +214,18 @@ public class GameManager : MonoBehaviour
         // Si le jeu est terminé, écouter les touches
         if (gameIsOver)
         {
-            // Si le score a été envoyé, attendre P1_B3 pour relancer
+            // Si le score a été envoyé
             if (scoreWasSubmitted)
             {
-                if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+                // P1_B3 = Relancer une partie
+                if (Input.GetButtonDown("P1_B3"))
                 {
                     RestartGame();
+                }
+                // P1_B5 = Retourner au menu pour changer de mode
+                else if (Input.GetButtonDown("P1_B5"))
+                {
+                    GoToMenu();
                 }
                 return;
             }
@@ -205,7 +234,7 @@ public class GameManager : MonoBehaviour
             if (hasWon)
             {
                 // P1_B3 = Relancer une partie
-                if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+                if (Input.GetButtonDown("P1_B3"))
                 {
                     RestartGame();
                 }
@@ -214,17 +243,24 @@ public class GameManager : MonoBehaviour
                 {
                     SaveScore();
                 }
+                // P1_B5 = Retourner au menu pour changer de mode
+                else if (Input.GetButtonDown("P1_B5"))
+                {
+                    GoToMenu();
+                }
             }
             // Si c'est un game over (défaite)
             else
             {
-                if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(restartKey))
+                // P1_B3 = Relancer une partie
+                if (Input.GetButtonDown("P1_B3"))
                 {
                     RestartGame();
                 }
-                else if (Input.GetKeyDown(quitKey))
+                // P1_B5 = Retourner au menu pour changer de mode
+                else if (Input.GetButtonDown("P1_B5"))
                 {
-                    QuitGame();
+                    GoToMenu();
                 }
             }
         }
@@ -304,6 +340,15 @@ public class GameManager : MonoBehaviour
         // Recharger la scène actuelle
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name);
+    }
+
+    public void GoToMenu()
+    {
+        // Rétablir le temps normal
+        Time.timeScale = 1f;
+
+        // Charger la scène du menu
+        SceneManager.LoadScene("Menu");
     }
 
     public void QuitGame()

@@ -13,6 +13,10 @@ public class MainMenuController : MonoBehaviour
     [Header("Scene Settings")]
     [SerializeField] private string gameSceneName = "MainScene";
 
+    [Header("Sound")]
+    [SerializeField] private AudioClip clickSound;
+    [SerializeField] private AudioSource audioSource;
+
     private enum MenuState
     {
         MainMenu,
@@ -55,17 +59,28 @@ public class MainMenuController : MonoBehaviour
         // B1 ou F = Jouer (va à l'écran de sélection Solo/Duo)
         if (Input.GetButtonDown("P1_B1") || Input.GetKeyDown(KeyCode.F))
         {
+            PlayClickSound();
             ShowModeSelect();
         }
         // B2 ou R = Highscores
         else if (Input.GetButtonDown("P1_B2") || Input.GetKeyDown(KeyCode.R))
         {
+            PlayClickSound();
             ShowHighscores();
         }
         // Échap = Quitter
         else if (Input.GetKeyDown(KeyCode.Escape))
         {
+            PlayClickSound();
             QuitGame();
+        }
+    }
+
+    void PlayClickSound()
+    {
+        if (audioSource != null && clickSound != null)
+        {
+            audioSource.PlayOneShot(clickSound);
         }
     }
 
@@ -84,16 +99,19 @@ public class MainMenuController : MonoBehaviour
         // B1 ou F = Solo
         if (Input.GetButtonDown("P1_B1") || Input.GetKeyDown(KeyCode.F))
         {
+            PlayClickSound();
             StartGame(GameMode.Solo);
         }
         // B2 ou R = Duo
         else if (Input.GetButtonDown("P1_B2") || Input.GetKeyDown(KeyCode.R))
         {
+            PlayClickSound();
             StartGame(GameMode.Duo);
         }
         // B3 ou Echap = Retour
         else if (Input.GetButtonDown("P1_B3") || Input.GetKeyDown(KeyCode.Escape))
         {
+            PlayClickSound();
             ShowMainMenu();
         }
     }
@@ -104,6 +122,7 @@ public class MainMenuController : MonoBehaviour
         if (Input.GetButtonDown("P1_B1") || Input.GetButtonDown("P1_B2") || Input.GetButtonDown("P1_B3") ||
             Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.R))
         {
+            PlayClickSound();
             ShowMainMenu();
         }
     }
