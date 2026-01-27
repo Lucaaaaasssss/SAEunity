@@ -70366,6 +70366,7 @@ MonoBehaviour:
   countdownGo: {fileID: 8300000, guid: e7bf14d007bad4985b7cf210b01b573a, type: 3}
   countdownAudioSource: {fileID: 1899253004}
   quitKey: 27
+  clickSound: {fileID: 8300000, guid: 58701280ca97f4f55a29b392b8c061fd, type: 3}
 --- !u!4 &1899253003
 Transform:
   m_ObjectHideFlags: 0
