@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Networking;
 using TMPro;
 using System.Collections;
 using Anatidae;
@@ -27,6 +28,10 @@ public class GameManager : MonoBehaviour
     private int finalTimeInCentiseconds = 0; // Stocke le temps pour l'enregistrement
     private bool wasShowingHighscoreInput = false; // Pour détecter quand l'écran de saisie se ferme
     private bool scoreWasSubmitted = false; // Pour savoir si le score a été envoyé
+
+    // Configuration API pour compter les parties
+    private const string LOCAL_PROXY_URL = "http://localhost:3000/proxy";
+    private const string VPS_BASE_URL = "https://lucaslebecq.fr/api";
 
     public static GameManager Instance { get; private set; }
 
@@ -71,6 +76,9 @@ public class GameManager : MonoBehaviour
 
         // Charger et appliquer les paramètres du jeu
         StartCoroutine(InitializeGameSettings());
+
+        // Incrémenter le compteur de parties jouées
+        StartCoroutine(EnregistrerNouvellePartie());
     }
 
     IEnumerator InitializeGameSettings()
@@ -232,6 +240,27 @@ public class GameManager : MonoBehaviour
     public bool HasWon()
     {
         return hasWon;
+    }
+
+    /// <summary>
+    /// Enregistre une nouvelle partie jouée via l'API
+    /// </summary>
+    IEnumerator EnregistrerNouvellePartie()
+    {
+        string apiUrl = VPS_BASE_URL + "/?parametre=nouvelle_partie";
+        string requestUrl = LOCAL_PROXY_URL + "?url=" + UnityWebRequest.EscapeURL(apiUrl);
+
+        UnityWebRequest request = UnityWebRequest.Get(requestUrl);
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Nouvelle partie enregistrée!");
+        }
+        else
+        {
+            Debug.LogWarning("Erreur lors de l'enregistrement de la partie: " + request.error);
+        }
     }
 
     /// <summary>
