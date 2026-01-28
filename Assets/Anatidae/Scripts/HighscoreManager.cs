@@ -67,7 +67,7 @@ namespace Anatidae {
         public static string PlayerName;
 
         [SerializeField] HighscoreNameInput highscoreNameInput;
-        [SerializeField] HighscoreUI highscoreUi;
+        [SerializeField] LeaderboardDisplay highscoreUi;
 
         void Awake()
         {

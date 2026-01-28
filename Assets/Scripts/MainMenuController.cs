@@ -62,8 +62,8 @@ public class MainMenuController : MonoBehaviour
             PlayClickSound();
             ShowModeSelect();
         }
-        // B2 ou R = Highscores
-        else if (Input.GetButtonDown("P1_B2") || Input.GetKeyDown(KeyCode.R))
+        // B4 ou R = Highscores
+        else if (Input.GetButtonDown("P1_B4") || Input.GetKeyDown(KeyCode.R))
         {
             PlayClickSound();
             ShowHighscores();
@@ -102,8 +102,8 @@ public class MainMenuController : MonoBehaviour
             PlayClickSound();
             StartGame(GameMode.Solo);
         }
-        // B2 ou R = Duo
-        else if (Input.GetButtonDown("P1_B2") || Input.GetKeyDown(KeyCode.R))
+        // B4 ou R = Duo
+        else if (Input.GetButtonDown("P1_B4") || Input.GetKeyDown(KeyCode.R))
         {
             PlayClickSound();
             StartGame(GameMode.Duo);

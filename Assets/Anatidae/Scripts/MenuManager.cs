@@ -34,15 +34,10 @@ public class MenuManager : MonoBehaviour
 
     void Update()
     {
-        // DÉSACTIVÉ: les appels à BackToMenu() qui crashent sur Windows
-        // if (heldQuitTimer >= HeldQuitTime || afkTimer >= AfkTime) {
-        //     BackToMenu();
-        // }
-
-        // DÉSACTIVÉ: Échap pour quitter (crash sur Windows)
-        // if (Input.GetKeyDown(KeyCode.Escape)) {
-        //     BackToMenu();
-        // }
+        // Quitter après 30s d'inactivité ou bouton Coin maintenu 1.5s
+        if (heldQuitTimer >= HeldQuitTime || afkTimer >= AfkTime) {
+            BackToMenu();
+        }
 
         if (Input.GetButton("Coin"))
             heldQuitTimer += Time.deltaTime;
